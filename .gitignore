@@ -1,0 +1,19 @@
+# Environment files
+.env
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/*
+!.vscode/settings.json
+.idea
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+.tmp
+.temp
