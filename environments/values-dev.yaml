@@ -1,0 +1,163 @@
+# Development Environment Values
+
+kong:
+  enabled: true
+  proxy:
+    type: NodePort
+    http:
+      nodePort: 30080
+    tls:
+      nodePort: 30443
+
+postgresql-user:
+  enabled: true
+  auth:
+    username: "userservice"
+    password: "dev-user-password"
+    database: "userdb"
+  primary:
+    persistence:
+      size: 500Mi
+    resources:
+      limits:
+        cpu: 200m
+        memory: 256Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+
+postgresql-accommodation:
+  enabled: true
+  auth:
+    username: "accommodationservice"
+    password: "dev-accommodation-password"
+    database: "accommodationdb"
+  primary:
+    persistence:
+      size: 500Mi
+    resources:
+      limits:
+        cpu: 200m
+        memory: 256Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+
+mongodb:
+  enabled: true
+  auth:
+    username: "ratingservice"
+    password: "dev-mongo-password"
+    rootPassword: "dev-mongo-root"
+    database: "ratingsdb"
+  persistence:
+    size: 500Mi
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+user-service:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: ghcr.io/tehnotrube/trubanb-pipeline-dev-2
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  service:
+    port: 3001
+  livenessProbe:
+    httpGet:
+      path: /
+      port: 3001
+  readinessProbe:
+    httpGet:
+      path: /
+      port: 3001
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  ingress:
+    enabled: true
+    annotations:
+      konghq.com/strip-path: "true"
+    hosts:
+      - host: localhost
+        paths:
+          - path: /api/users
+            pathType: Prefix
+
+accommodation-service:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: ghcr.io/tehnotrube/trubanb-pipeline-dev-2
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  service:
+    port: 3001
+  livenessProbe:
+    httpGet:
+      path: /
+      port: 3001
+  readinessProbe:
+    httpGet:
+      path: /
+      port: 3001
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  ingress:
+    enabled: true
+    annotations:
+      konghq.com/strip-path: "true"
+    hosts:
+      - host: localhost
+        paths:
+          - path: /api/accommodations
+            pathType: Prefix
+
+rating-service:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: ghcr.io/tehnotrube/trubanb-pipeline-dev-2
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  service:
+    port: 3001
+  livenessProbe:
+    httpGet:
+      path: /
+      port: 3001
+  readinessProbe:
+    httpGet:
+      path: /
+      port: 3001
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  ingress:
+    enabled: true
+    annotations:
+      konghq.com/strip-path: "true"
+    hosts:
+      - host: localhost
+        paths:
+          - path: /api/ratings
+            pathType: Prefix

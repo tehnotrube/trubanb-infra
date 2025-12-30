@@ -1,0 +1,51 @@
+apiVersion: v2
+name: trubanb
+description: Umbrella chart for trubanb microservices platform
+type: application
+version: 0.1.0
+appVersion: "1.0"
+
+dependencies:
+  # Kong API Gateway
+  - name: kong
+    version: "2.38.0"
+    repository: https://charts.konghq.com
+    condition: kong.enabled
+  
+  # PostgreSQL for user-service
+  - name: postgresql
+    version: "18.2.0"
+    repository: https://charts.bitnami.com/bitnami
+    condition: postgresql-user.enabled
+    alias: postgresql-user
+
+  # PostgreSQL for accommodation-service
+  - name: postgresql
+    version: "18.2.0"
+    repository: https://charts.bitnami.com/bitnami
+    condition: postgresql-accommodation.enabled
+    alias: postgresql-accommodation
+
+  # MongoDB for rating-service
+  - name: mongodb
+    version: "18.1.20"
+    repository: https://charts.bitnami.com/bitnami
+    condition: mongodb.enabled
+  
+  # User Service
+  - name: user-service
+    version: "0.1.0"
+    repository: "file://../charts/user-service"
+    condition: user-service.enabled
+  
+  # Accommodation Service
+  - name: accommodation-service
+    version: "0.1.0"
+    repository: "file://../charts/accommodation-service"
+    condition: accommodation-service.enabled
+  
+  # Rating Service
+  - name: rating-service
+    version: "0.1.0"
+    repository: "file://../charts/rating-service"
+    condition: rating-service.enabled

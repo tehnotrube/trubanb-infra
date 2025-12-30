@@ -1,0 +1,239 @@
+# ============================================================================
+# TRUBANB UMBRELLA CHART - VALUES
+# ============================================================================
+
+# Kong API Gateway Configuration
+kong:
+  enabled: true
+  
+  ingressController:
+    enabled: true
+    installCRDs: false
+  
+  proxy:
+    type: LoadBalancer
+  
+  env:
+    database: "off"  # DB-less mode
+  
+  # Admin API (for management)
+  admin:
+    enabled: true
+    type: ClusterIP
+    http:
+      enabled: true
+
+# ============================================================================
+# POSTGRESQL DATABASES
+# ============================================================================
+
+# PostgreSQL for user-service
+postgresql-user:
+  enabled: true
+  
+  auth:
+    username: userservice
+    password: ""  # Set via secret or --set flag
+    database: userdb
+    existingSecret: ""  # Optional: reference existing secret
+  
+  primary:
+    persistence:
+      enabled: true
+      size: 2Gi
+      storageClass: ""  # Use default storage class
+    
+    resources:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 250m
+        memory: 256Mi
+  
+  metrics:
+    enabled: false  # Enable for monitoring
+
+# PostgreSQL for accommodation-service
+postgresql-accommodation:
+  enabled: true
+  
+  auth:
+    username: accommodationservice
+    password: ""  # Set via secret or --set flag
+    database: accommodationdb
+    existingSecret: ""  # Optional: reference existing secret
+  
+  primary:
+    persistence:
+      enabled: true
+      size: 5Gi  # Larger for accommodation data
+      storageClass: ""  # Use default storage class
+    
+    resources:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 250m
+        memory: 256Mi
+  
+  metrics:
+    enabled: false  # Enable for monitoring
+
+# ============================================================================
+# MONGODB DATABASE
+# ============================================================================
+
+mongodb:
+  enabled: true
+  
+  auth:
+    enabled: true
+    rootPassword: ""  # Set via secret or --set flag
+    username: ratingservice
+    password: ""  # Set via secret or --set flag
+    database: ratingsdb
+    existingSecret: ""  # Optional: reference existing secret
+  
+  architecture: standalone  # Use 'replicaset' for production
+  
+  persistence:
+    enabled: true
+    size: 3Gi
+    storageClass: ""  # Use default storage class
+  
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+  
+  metrics:
+    enabled: false  # Enable for monitoring
+
+# ============================================================================
+# MICROSERVICES
+# ============================================================================
+
+# User Service
+user-service:
+  enabled: true
+  replicaCount: 2
+  
+  image:
+    repository: ghcr.io/tehnotrube/user-service
+    tag: "v1.0.0"
+    pullPolicy: IfNotPresent
+  
+  database:
+    # These will auto-generate to match postgresql-user
+    host: ""  # Defaults to {{ .Release.Name }}-postgresql-user
+    port: "5432"
+    name: "userdb"
+    existingSecret: ""  # Defaults to {{ .Release.Name }}-postgresql-user
+  
+  service:
+    port: 8080
+  
+  ingress:
+    enabled: true
+    className: kong
+    annotations:
+      konghq.com/strip-path: "false"
+      konghq.com/preserve-host: "true"
+    hosts:
+      - host: api.trubanb.local
+        paths:
+          - path: /api/users
+            pathType: Prefix
+  
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+
+# Accommodation Service
+accommodation-service:
+  enabled: true
+  replicaCount: 2
+  
+  image:
+    repository: ghcr.io/tehnotrube/accommodation-service
+    tag: "v1.0.0"
+    pullPolicy: IfNotPresent
+  
+  database:
+    # These will auto-generate to match postgresql-accommodation
+    host: ""  # Defaults to {{ .Release.Name }}-postgresql-accommodation
+    port: "5432"
+    name: "accommodationdb"
+    existingSecret: ""  # Defaults to {{ .Release.Name }}-postgresql-accommodation
+  
+  service:
+    port: 8080
+  
+  ingress:
+    enabled: true
+    className: kong
+    annotations:
+      konghq.com/strip-path: "false"
+      konghq.com/preserve-host: "true"
+    hosts:
+      - host: api.trubanb.local
+        paths:
+          - path: /api/accommodations
+            pathType: Prefix
+  
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+
+# Rating Service
+rating-service:
+  enabled: true
+  replicaCount: 2
+  
+  image:
+    repository: ghcr.io/tehnotrube/rating-service
+    tag: "v1.0.0"
+    pullPolicy: IfNotPresent
+  
+  mongodb:
+    # These will auto-generate to match mongodb
+    host: ""  # Defaults to {{ .Release.Name }}-mongodb
+    port: "27017"
+    database: "ratingsdb"
+    existingSecret: ""  # Defaults to {{ .Release.Name }}-mongodb
+  
+  service:
+    port: 8080
+  
+  ingress:
+    enabled: true
+    className: kong
+    annotations:
+      konghq.com/strip-path: "false"
+      konghq.com/preserve-host: "true"
+    hosts:
+      - host: api.trubanb.local
+        paths:
+          - path: /api/ratings
+            pathType: Prefix
+  
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
