@@ -50,26 +50,23 @@ postgresql-user:
       requests:
         cpu: 250m
         memory: 256Mi
-  
-  metrics:
-    enabled: false  # Enable for monitoring
 
 # PostgreSQL for accommodation-service
 postgresql-accommodation:
   enabled: true
-  
+
   auth:
     username: accommodationservice
     password: ""  # Set via secret or --set flag
     database: accommodationdb
     existingSecret: ""  # Optional: reference existing secret
-  
+
   primary:
     persistence:
       enabled: true
       size: 5Gi  # Larger for accommodation data
       storageClass: ""  # Use default storage class
-    
+
     resources:
       limits:
         cpu: 500m
@@ -77,9 +74,30 @@ postgresql-accommodation:
       requests:
         cpu: 250m
         memory: 256Mi
-  
-  metrics:
-    enabled: false  # Enable for monitoring
+
+# PostgreSQL for reservation-service
+postgresql-reservation:
+  enabled: true
+
+  auth:
+    username: reservationservice
+    password: ""  # Set via secret or --set flag
+    database: reservationdb
+    existingSecret: ""  # Optional: reference existing secret
+
+  primary:
+    persistence:
+      enabled: true
+      size: 3Gi
+      storageClass: ""  # Use default storage class
+
+    resources:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 250m
+        memory: 256Mi
 
 # ============================================================================
 # MONGODB DATABASE
@@ -162,22 +180,22 @@ user-service:
 accommodation-service:
   enabled: true
   replicaCount: 2
-  
+
   image:
     repository: ghcr.io/tehnotrube/accommodation-service
     tag: "v1.0.0"
     pullPolicy: IfNotPresent
-  
+
   database:
     # These will auto-generate to match postgresql-accommodation
     host: ""  # Defaults to {{ .Release.Name }}-postgresql-accommodation
     port: "5432"
     name: "accommodationdb"
     existingSecret: ""  # Defaults to {{ .Release.Name }}-postgresql-accommodation
-  
+
   service:
     port: 8080
-  
+
   ingress:
     enabled: true
     className: kong
@@ -189,7 +207,47 @@ accommodation-service:
         paths:
           - path: /api/accommodations
             pathType: Prefix
-  
+
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+
+# Reservation Service
+reservation-service:
+  enabled: true
+  replicaCount: 2
+
+  image:
+    repository: ghcr.io/tehnotrube/reservation-service
+    tag: "v1.0.0"
+    pullPolicy: IfNotPresent
+
+  database:
+    # These will auto-generate to match postgresql-reservation
+    host: ""  # Defaults to {{ .Release.Name }}-postgresql-reservation
+    port: "5432"
+    name: "reservationdb"
+    existingSecret: ""  # Defaults to {{ .Release.Name }}-postgresql-reservation
+
+  service:
+    port: 8080
+
+  ingress:
+    enabled: true
+    className: kong
+    annotations:
+      konghq.com/strip-path: "false"
+      konghq.com/preserve-host: "true"
+    hosts:
+      - host: api.trubanb.local
+        paths:
+          - path: /api/reservations
+            pathType: Prefix
+
   resources:
     limits:
       cpu: 500m

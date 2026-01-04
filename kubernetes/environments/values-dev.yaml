@@ -43,6 +43,23 @@ postgresql-accommodation:
         cpu: 100m
         memory: 128Mi
 
+postgresql-reservation:
+  enabled: true
+  auth:
+    username: "reservationservice"
+    password: "dev-reservation-password"
+    database: "reservationdb"
+  primary:
+    persistence:
+      size: 500Mi
+    resources:
+      limits:
+        cpu: 200m
+        memory: 256Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+
 mongodb:
   enabled: true
   auth:
@@ -64,7 +81,7 @@ user-service:
   enabled: true
   replicaCount: 1
   image:
-    repository: ghcr.io/tehnotrube/trubanb-pipeline-dev-2
+    repository: ghcr.io/tehnotrube/trubanb-user-service
     tag: "latest"
     pullPolicy: IfNotPresent
   service:
@@ -98,7 +115,7 @@ accommodation-service:
   enabled: true
   replicaCount: 1
   image:
-    repository: ghcr.io/tehnotrube/trubanb-pipeline-dev-2
+    repository: ghcr.io/tehnotrube/trubanb-accommodation-service
     tag: "latest"
     pullPolicy: IfNotPresent
   service:
@@ -128,11 +145,45 @@ accommodation-service:
           - path: /api/accommodations
             pathType: Prefix
 
+reservation-service:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: ghcr.io/tehnotrube/trubanb-reservation-service
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  service:
+    port: 3001
+  livenessProbe:
+    httpGet:
+      path: /
+      port: 3001
+  readinessProbe:
+    httpGet:
+      path: /
+      port: 3001
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  ingress:
+    enabled: true
+    annotations:
+      konghq.com/strip-path: "true"
+    hosts:
+      - host: localhost
+        paths:
+          - path: /api/reservations
+            pathType: Prefix
+
 rating-service:
   enabled: true
   replicaCount: 1
   image:
-    repository: ghcr.io/tehnotrube/trubanb-pipeline-dev-2
+    repository: ghcr.io/tehnotrube/trubanb-rating-service
     tag: "latest"
     pullPolicy: IfNotPresent
   service:

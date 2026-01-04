@@ -8,6 +8,9 @@ dependencies:
 - name: postgresql
   repository: https://charts.bitnami.com/bitnami
   version: 18.2.0
+- name: postgresql
+  repository: https://charts.bitnami.com/bitnami
+  version: 18.2.0
 - name: mongodb
   repository: https://charts.bitnami.com/bitnami
   version: 18.1.20
@@ -17,8 +20,11 @@ dependencies:
 - name: accommodation-service
   repository: file://../charts/accommodation-service
   version: 0.1.0
+- name: reservation-service
+  repository: file://../charts/reservation-service
+  version: 0.1.0
 - name: rating-service
   repository: file://../charts/rating-service
   version: 0.1.0
-digest: sha256:0586bfb34d160e850fc568ebdc7de6b4a73bc3f5eab38ad7f75cf80098db236b
-generated: "2025-12-30T12:11:47.4529357+01:00"
+digest: sha256:541cb1f143009bd07444af0879e6c8d6963db1d9d2c0e2c8fd88c4a977514c4b
+generated: "2026-01-04T23:17:28.7173609+01:00"
