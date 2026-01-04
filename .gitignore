@@ -86,7 +86,6 @@ fabric.properties
 
 ### JetBrains Patch ###
 # Comment Reason: https://github.com/joeblau/gitignore.io/issues/186#issuecomment-215987721
-
 # *.iml
 # modules.xml
 # .idea/misc.xml
@@ -136,5 +135,24 @@ fabric.properties
 # Ignore all local history of files
 .history
 .ionide
+
+### Additional Project-Specific ###
+# Environment files
+.env
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE (consolidated with above patterns)
+.idea
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+.tmp
+.temp
 
 # End of https://www.toptal.com/developers/gitignore/api/helm,visualstudiocode,jetbrains
