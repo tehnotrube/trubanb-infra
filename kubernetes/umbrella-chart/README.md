@@ -6,11 +6,12 @@ Complete Helm chart for deploying the entire Trubanb microservices platform.
 
 This umbrella chart deploys:
 - **Kong API Gateway** - API Gateway and Ingress Controller
-- **3 Microservices**:
+- **4 Microservices**:
   - user-service (PostgreSQL)
   - accommodation-service (PostgreSQL)
+  - reservation-service (PostgreSQL)
   - rating-service (MongoDB)
-- **2 PostgreSQL Databases** (separate instances)
+- **3 PostgreSQL Databases** (separate instances)
 - **1 MongoDB Database**
 
 ## Prerequisites
@@ -81,6 +82,7 @@ kubectl get svc trubanb-kong-proxy -n trubanb-dev
 # Access APIs
 curl http://localhost:<NODEPORT>/api/users
 curl http://localhost:<NODEPORT>/api/accommodations
+curl http://localhost:<NODEPORT>/api/reservations
 curl http://localhost:<NODEPORT>/api/ratings
 ```
 
@@ -95,6 +97,10 @@ kubectl create secret generic user-db-secret \
   -n trubanb-prod
 
 kubectl create secret generic accommodation-db-secret \
+  --from-literal=password='<secure-password>' \
+  -n trubanb-prod
+
+kubectl create secret generic reservation-db-secret \
   --from-literal=password='<secure-password>' \
   -n trubanb-prod
 
@@ -232,6 +238,9 @@ kubectl exec -it <user-service-pod> -- curl localhost:8080/health
 # Accommodation service
 kubectl exec -it <accommodation-service-pod> -- curl localhost:8080/health
 
+# Reservation service
+kubectl exec -it <reservation-service-pod> -- curl localhost:8080/health
+
 # Rating service
 kubectl exec -it <rating-service-pod> -- curl localhost:8080/health
 ```
@@ -245,6 +254,9 @@ kubectl exec -it trubanb-postgresql-user-0 -- psql -U userservice -d userdb
 # PostgreSQL (accommodation-service)
 kubectl exec -it trubanb-postgresql-accommodation-0 -- psql -U accommodationservice -d accommodationdb
 
+# PostgreSQL (reservation-service)
+kubectl exec -it trubanb-postgresql-reservation-0 -- psql -U reservationservice -d reservationdb
+
 # MongoDB
 kubectl exec -it trubanb-mongodb-0 -- mongosh -u ratingservice -p <password> ratingsdb
 ```
@@ -252,21 +264,22 @@ kubectl exec -it trubanb-mongodb-0 -- mongosh -u ratingservice -p <password> rat
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────┐
-│                    Kong Gateway                      │
-│              (API Gateway / Ingress)                 │
-└──────────────┬──────────────┬──────────────┬─────────┘
-               │              │              │
-      ┌────────▼────────┐ ┌──▼──────────┐ ┌─▼──────────┐
-      │  user-service   │ │accommodation│ │  rating-   │
-      │                 │ │  -service   │ │  service   │
-      └────────┬────────┘ └──┬──────────┘ └─┬──────────┘
-               │              │              │
-      ┌────────▼────────┐ ┌──▼──────────┐ ┌─▼──────────┐
-      │  PostgreSQL     │ │ PostgreSQL  │ │  MongoDB   │
-      │  (userdb)       │ │(accommoda-  │ │ (ratingsdb)│
-      │                 │ │  tiondb)    │ │            │
-      └─────────────────┘ └─────────────┘ └────────────┘
+┌──────────────────────────────────────────────────────────────────┐
+│                         Kong Gateway                              │
+│                   (API Gateway / Ingress)                         │
+└────────┬──────────────┬──────────────┬──────────────┬────────────┘
+         │              │              │              │
+    ┌────▼─────┐  ┌────▼──────┐  ┌───▼──────┐  ┌───▼────────┐
+    │  user-   │  │accommoda- │  │reserva-  │  │  rating-   │
+    │ service  │  │   tion-   │  │  tion-   │  │  service   │
+    │          │  │  service  │  │ service  │  │            │
+    └────┬─────┘  └────┬──────┘  └───┬──────┘  └───┬────────┘
+         │              │              │              │
+    ┌────▼─────┐  ┌────▼──────┐  ┌───▼──────┐  ┌───▼────────┐
+    │PostgreSQL│  │PostgreSQL │  │PostgreSQL│  │  MongoDB   │
+    │ (userdb) │  │(accommoda-│  │(reserva- │  │(ratingsdb) │
+    │          │  │  tiondb)  │  │  tiondb) │  │            │
+    └──────────┘  └───────────┘  └──────────┘  └────────────┘
 ```
 
 ## Troubleshooting
@@ -366,10 +379,11 @@ umbrella-chart/
 ├── values.yaml          # Default values
 ├── charts/              # Downloaded dependencies (generated)
 │   ├── kong-2.38.0.tgz
-│   ├── postgresql-15.5.38.tgz
-│   ├── mongodb-15.5.6.tgz
+│   ├── postgresql-18.2.0.tgz (x3 instances)
+│   ├── mongodb-18.1.20.tgz
 │   ├── user-service-0.1.0.tgz
 │   ├── accommodation-service-0.1.0.tgz
+│   ├── reservation-service-0.1.0.tgz
 │   └── rating-service-0.1.0.tgz
 └── Chart.lock           # Locked dependency versions
 ```
