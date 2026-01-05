@@ -1,0 +1,209 @@
+# Production Environment Values
+# IMPORTANT: Use proper secret management in production
+# Use Kubernetes Secrets, Sealed Secrets, or External Secrets Operator
+
+kong:
+  enabled: true
+  proxy:
+    type: LoadBalancer
+  env:
+    database: "off"
+
+postgresql-user:
+  enabled: true
+  auth:
+    password: ""
+    existingSecret: "user-db-secret"
+  primary:
+    persistence:
+      enabled: true
+      size: 10Gi
+      storageClass: ""
+    resources:
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+      requests:
+        cpu: 1000m
+        memory: 2Gi
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+
+postgresql-accommodation:
+  enabled: true
+  auth:
+    password: ""
+    existingSecret: "accommodation-db-secret"
+  primary:
+    persistence:
+      enabled: true
+      size: 20Gi
+      storageClass: ""
+    resources:
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+      requests:
+        cpu: 1000m
+        memory: 2Gi
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+
+mongodb:
+  enabled: true
+  architecture: replicaset
+  replicaCount: 3
+  auth:
+    rootPassword: ""
+    password: ""
+    existingSecret: "mongodb-secret"
+  persistence:
+    enabled: true
+    size: 15Gi
+    storageClass: ""
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 4Gi
+    requests:
+      cpu: 1000m
+      memory: 2Gi
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+
+user-service:
+  enabled: true
+  replicaCount: 3
+  image:
+    repository: ghcr.io/tehnotrube/trubanb-pipeline-prod
+    tag: "v1.0.0"
+    pullPolicy: Always
+  service:
+    port: 3001
+  livenessProbe:
+    httpGet:
+      path: /
+      port: 3001
+  readinessProbe:
+    httpGet:
+      path: /
+      port: 3001
+  database:
+    existingSecret: "user-db-secret"
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 500m
+      memory: 512Mi
+  ingress:
+    enabled: true
+    annotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      konghq.com/strip-path: "true"
+      konghq.com/preserve-host: "true"
+    hosts:
+      - host: api.trubanb.com
+        paths:
+          - path: /api/users
+            pathType: Prefix
+    tls:
+      - secretName: trubanb-api-tls
+        hosts:
+          - api.trubanb.com
+
+accommodation-service:
+  enabled: true
+  replicaCount: 3
+  image:
+    repository: ghcr.io/tehnotrube/trubanb-pipeline-prod
+    tag: "v1.0.0"
+    pullPolicy: Always
+  service:
+    port: 3001
+  livenessProbe:
+    httpGet:
+      path: /
+      port: 3001
+  readinessProbe:
+    httpGet:
+      path: /
+      port: 3001
+  database:
+    existingSecret: "accommodation-db-secret"
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 500m
+      memory: 512Mi
+  ingress:
+    enabled: true
+    annotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      konghq.com/strip-path: "true"
+      konghq.com/preserve-host: "true"
+    hosts:
+      - host: api.trubanb.com
+        paths:
+          - path: /api/accommodations
+            pathType: Prefix
+    tls:
+      - secretName: trubanb-api-tls
+        hosts:
+          - api.trubanb.com
+  extraEnv:
+    - name: STORAGE_BUCKET
+      value: "trubanb-accommodation-images-prod"
+    - name: STORAGE_REGION
+      value: "us-east-1"
+
+rating-service:
+  enabled: true
+  replicaCount: 3
+  image:
+    repository: ghcr.io/tehnotrube/trubanb-pipeline-prod
+    tag: "v1.0.0"
+    pullPolicy: Always
+  service:
+    port: 3001
+  livenessProbe:
+    httpGet:
+      path: /
+      port: 3001
+  readinessProbe:
+    httpGet:
+      path: /
+      port: 3001
+  mongodb:
+    existingSecret: "mongodb-secret"
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 500m
+      memory: 512Mi
+  ingress:
+    enabled: true
+    annotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      konghq.com/strip-path: "true"
+      konghq.com/preserve-host: "true"
+    hosts:
+      - host: api.trubanb.com
+        paths:
+          - path: /api/ratings
+            pathType: Prefix
+    tls:
+      - secretName: trubanb-api-tls
+        hosts:
+          - api.trubanb.com
