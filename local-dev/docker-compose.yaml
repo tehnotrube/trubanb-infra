@@ -1,39 +1,26 @@
 services:
-    trubanb-accomodation-service:
+    # ============================================================================
+    # USER SERVICE
+    # ============================================================================
+
+    # PostgreSQL for user-service
+    postgresql-user:
+        image: postgres:16-alpine
         restart: always
-        build:
-            context: ${ACCOMODATION_SERVICE_PATH}
-            dockerfile: Dockerfile
+        environment:
+            POSTGRES_DB: userdb
+            POSTGRES_USER: userservice
+            POSTGRES_PASSWORD: ${POSTGRES_USER_PASSWORD:-userpass123}
         ports:
-            - "${ACCOMODATION_SERVICE_PORT}:3000"
-    trubanb-frontend:
-        restart: always
-        build:
-            context: ${FRONTEND_PATH}
-            dockerfile: Dockerfile
-        ports:
-            - "${FRONTEND_PORT}:80"
-    trubanb-notification-service:
-        restart: always
-        build:
-            context: ${NOTIFICATION_SERVICE_PATH}
-            dockerfile: Dockerfile
-        ports:
-            - "${NOTIFICATION_SERVICE_PORT}:3000"
-    trubanb-rating-service:
-        restart: always
-        build:
-            context: ${RATING_SERVICE_PATH}
-            dockerfile: Dockerfile
-        ports:
-            - "${RATING_SERVICE_PORT}:3000"
-    trubanb-reservation-service:
-        restart: always
-        build:
-            context: ${RESERVATION_SERVICE_PATH}
-            dockerfile: Dockerfile
-        ports:
-            - "${RESERVATION_SERVICE_PORT}:3000"
+            - "5432:5432"
+        volumes:
+            - postgres-user-data:/var/lib/postgresql/data
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U userservice -d userdb"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+
     trubanb-user-service:
         restart: always
         build:
@@ -41,3 +28,156 @@ services:
             dockerfile: Dockerfile
         ports:
             - "${USER_SERVICE_PORT}:3000"
+        depends_on:
+            postgresql-user:
+                condition: service_healthy
+        environment:
+            DB_HOST: postgresql-user
+            DB_PORT: 5432
+            DB_NAME: userdb
+            DB_USER: userservice
+            DB_PASSWORD: ${POSTGRES_USER_PASSWORD:-userpass123}
+
+    # ============================================================================
+    # ACCOMMODATION SERVICE
+    # ============================================================================
+
+    # PostgreSQL for accommodation-service
+    postgresql-accommodation:
+        image: postgres:16-alpine
+        restart: always
+        environment:
+            POSTGRES_DB: accommodationdb
+            POSTGRES_USER: accommodationservice
+            POSTGRES_PASSWORD: ${POSTGRES_ACCOMMODATION_PASSWORD:-accommodationpass123}
+        ports:
+            - "5433:5432"
+        volumes:
+            - postgres-accommodation-data:/var/lib/postgresql/data
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U accommodationservice -d accommodationdb"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+
+    trubanb-accomodation-service:
+        restart: always
+        build:
+            context: ${ACCOMODATION_SERVICE_PATH}
+            dockerfile: Dockerfile
+        ports:
+            - "${ACCOMODATION_SERVICE_PORT}:3000"
+        depends_on:
+            postgresql-accommodation:
+                condition: service_healthy
+        environment:
+            DB_HOST: postgresql-accommodation
+            DB_PORT: 5432
+            DB_NAME: accommodationdb
+            DB_USER: accommodationservice
+            DB_PASSWORD: ${POSTGRES_ACCOMMODATION_PASSWORD:-accommodationpass123}
+
+    # ============================================================================
+    # RESERVATION SERVICE
+    # ============================================================================
+
+    # PostgreSQL for reservation-service
+    postgresql-reservation:
+        image: postgres:16-alpine
+        restart: always
+        environment:
+            POSTGRES_DB: reservationdb
+            POSTGRES_USER: reservationservice
+            POSTGRES_PASSWORD: ${POSTGRES_RESERVATION_PASSWORD:-reservationpass123}
+        ports:
+            - "5434:5432"
+        volumes:
+            - postgres-reservation-data:/var/lib/postgresql/data
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U reservationservice -d reservationdb"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+
+    trubanb-reservation-service:
+        restart: always
+        build:
+            context: ${RESERVATION_SERVICE_PATH}
+            dockerfile: Dockerfile
+        ports:
+            - "${RESERVATION_SERVICE_PORT}:3000"
+        depends_on:
+            postgresql-reservation:
+                condition: service_healthy
+        environment:
+            DB_HOST: postgresql-reservation
+            DB_PORT: 5432
+            DB_NAME: reservationdb
+            DB_USER: reservationservice
+            DB_PASSWORD: ${POSTGRES_RESERVATION_PASSWORD:-reservationpass123}
+
+    # ============================================================================
+    # RATING SERVICE
+    # ============================================================================
+
+    # MongoDB for rating-service
+    mongodb:
+        image: mongo:7-jammy
+        restart: always
+        environment:
+            MONGO_INITDB_ROOT_USERNAME: root
+            MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_ROOT_PASSWORD:-rootpass123}
+            MONGO_INITDB_DATABASE: ratingsdb
+        ports:
+            - "27017:27017"
+        volumes:
+            - mongodb-data:/data/db
+            - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+        healthcheck:
+            test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+
+    trubanb-rating-service:
+        restart: always
+        build:
+            context: ${RATING_SERVICE_PATH}
+            dockerfile: Dockerfile
+        ports:
+            - "${RATING_SERVICE_PORT}:3000"
+        depends_on:
+            mongodb:
+                condition: service_healthy
+        environment:
+            MONGODB_URI: mongodb://ratingservice:${MONGODB_RATING_PASSWORD:-ratingpass123}@mongodb:27017/ratingsdb?authSource=ratingsdb
+
+    # ============================================================================
+    # NOTIFICATION SERVICE
+    # ============================================================================
+
+    trubanb-notification-service:
+        restart: always
+        build:
+            context: ${NOTIFICATION_SERVICE_PATH}
+            dockerfile: Dockerfile
+        ports:
+            - "${NOTIFICATION_SERVICE_PORT}:3000"
+
+    # ============================================================================
+    # FRONTEND
+    # ============================================================================
+
+    trubanb-frontend:
+        restart: always
+        build:
+            context: ${FRONTEND_PATH}
+            dockerfile: Dockerfile
+        ports:
+            - "${FRONTEND_PORT}:80"
+
+volumes:
+    postgres-user-data:
+    postgres-accommodation-data:
+    postgres-reservation-data:
+    mongodb-data:
