@@ -31,12 +31,16 @@ services:
         depends_on:
             postgresql-user:
                 condition: service_healthy
+            jaeger:
+                condition: service_healthy
         environment:
             DB_HOST: postgresql-user
             DB_PORT: 5432
             DB_NAME: userdb
             DB_USER: userservice
             DB_PASSWORD: ${POSTGRES_USER_PASSWORD:-userpass123}
+            OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
+            OTEL_SERVICE_NAME: user-service
 
     # ============================================================================
     # ACCOMMODATION SERVICE
@@ -70,12 +74,16 @@ services:
         depends_on:
             postgresql-accommodation:
                 condition: service_healthy
+            jaeger:
+                condition: service_healthy
         environment:
             DB_HOST: postgresql-accommodation
             DB_PORT: 5432
             DB_NAME: accommodationdb
             DB_USER: accommodationservice
             DB_PASSWORD: ${POSTGRES_ACCOMMODATION_PASSWORD:-accommodationpass123}
+            OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
+            OTEL_SERVICE_NAME: accommodation-service
 
     # ============================================================================
     # RESERVATION SERVICE
@@ -109,12 +117,16 @@ services:
         depends_on:
             postgresql-reservation:
                 condition: service_healthy
+            jaeger:
+                condition: service_healthy
         environment:
             DB_HOST: postgresql-reservation
             DB_PORT: 5432
             DB_NAME: reservationdb
             DB_USER: reservationservice
             DB_PASSWORD: ${POSTGRES_RESERVATION_PASSWORD:-reservationpass123}
+            OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
+            OTEL_SERVICE_NAME: reservation-service
 
     # ============================================================================
     # RATING SERVICE
@@ -149,8 +161,12 @@ services:
         depends_on:
             mongodb:
                 condition: service_healthy
+            jaeger:
+                condition: service_healthy
         environment:
             MONGODB_URI: mongodb://ratingservice:${MONGODB_RATING_PASSWORD:-ratingpass123}@mongodb:27017/ratingsdb?authSource=ratingsdb
+            OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
+            OTEL_SERVICE_NAME: rating-service
 
     # ============================================================================
     # NOTIFICATION SERVICE
@@ -163,6 +179,12 @@ services:
             dockerfile: Dockerfile
         ports:
             - "${NOTIFICATION_SERVICE_PORT}:3000"
+        depends_on:
+            jaeger:
+                condition: service_healthy
+        environment:
+            OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
+            OTEL_SERVICE_NAME: notification-service
 
     # ============================================================================
     # FRONTEND
@@ -175,6 +197,24 @@ services:
             dockerfile: Dockerfile
         ports:
             - "${FRONTEND_PORT}:80"
+
+    # ============================================================================
+    # OBSERVABILITY - TRACING
+    # ============================================================================
+
+    jaeger:
+        image: jaegertracing/all-in-one:latest
+        restart: always
+        ports:
+            - "16686:16686"     # Jaeger UI
+            - "4318:4318"       # OTLP HTTP receiver
+        environment:
+            - COLLECTOR_OTLP_ENABLED=true
+        healthcheck:
+            test: ["CMD", "wget", "--spider", "-q", "http://localhost:14269/"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
 
 volumes:
     postgres-user-data:
