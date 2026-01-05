@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "rating-service.fullname" . }}
+  labels:
+    {{- include "rating-service.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "rating-service.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "rating-service.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - name: http
+          containerPort: {{ .Values.service.port }}
+          protocol: TCP
+        env:
+        # MongoDB connection details
+        - name: MONGODB_HOST
+          value: {{ include "rating-service.mongodbHost" . | quote }}
+        - name: MONGODB_PORT
+          value: {{ .Values.mongodb.port | quote }}
+        - name: MONGODB_DATABASE
+          value: {{ .Values.mongodb.database | quote }}
+        - name: MONGODB_USERNAME
+          value: {{ .Values.mongodb.username | default "ratingservice" | quote }}
+        - name: MONGODB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "rating-service.mongodbSecret" . }}
+              key: {{ .Values.mongodb.secretKeys.passwordKey }}
+        - name: MONGODB_AUTH_DATABASE
+          value: {{ .Values.mongodb.authDatabase | quote }}
+        {{- with .Values.extraEnv }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        livenessProbe:
+          {{- toYaml .Values.livenessProbe | nindent 10 }}
+        readinessProbe:
+          {{- toYaml .Values.readinessProbe | nindent 10 }}
+        resources:
+          {{- toYaml .Values.resources | nindent 10 }}

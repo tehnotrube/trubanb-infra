@@ -1,0 +1,71 @@
+replicaCount: 1
+
+image:
+  repository: ghcr.io/tehnotrube/user-service
+  pullPolicy: IfNotPresent
+  tag: "v1.0.0"
+
+imagePullSecrets: []
+# - name: ghcr-secret
+
+service:
+  type: ClusterIP
+  port: 3001
+
+# Database configuration
+database:
+  host: ""  # Will be templated in deployment
+  port: "5432"
+  name: "userdb"
+  username: "userservice"
+  # Reference to external secret (created by PostgreSQL chart or manually)
+  existingSecret: ""  # Will be templated
+  secretKeys:
+    passwordKey: "password"
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+
+# Health checks with thresholds
+livenessProbe:
+  httpGet:
+    path: /health
+    port: 3001
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+  successThreshold: 1
+
+readinessProbe:
+  httpGet:
+    path: /ready
+    port: 3001
+  initialDelaySeconds: 10
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 3
+  successThreshold: 1
+
+# Ingress configuration - disabled by default, enabled in umbrella chart
+ingress:
+  enabled: false
+  className: kong
+  annotations:
+    konghq.com/strip-path: "false"
+    konghq.com/preserve-host: "true"
+  hosts:
+    - host: api.trubanb.local
+      paths:
+        - path: /api/users
+          pathType: Prefix
+
+# Additional environment variables
+extraEnv: []
+# - name: LOG_LEVEL
+#   value: "info"
