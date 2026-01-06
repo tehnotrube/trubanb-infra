@@ -10,7 +10,7 @@ fi
 
 REPOS=(
   "https://github.com/tehnotrube/trubanb-rating-service.git"
-  "https://github.com/tehnotrube/trubanb-gateway.git"
+  # "https://github.com/tehnotrube/trubanb-gateway.git"
   "https://github.com/tehnotrube/trubanb-reservation-service.git"
   "https://github.com/tehnotrube/trubanb-notification-service.git"
   "https://github.com/tehnotrube/trubanb-accommodation-service.git"
