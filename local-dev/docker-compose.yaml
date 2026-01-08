@@ -216,8 +216,59 @@ services:
             timeout: 5s
             retries: 5
 
+    # ============================================================================
+    # OBSERVABILITY - LOGGING
+    # ============================================================================
+
+    loki:
+        image: grafana/loki:3.0.0
+        restart: always
+        ports:
+            - "3100:3100"
+        volumes:
+            - ../loki/loki-config.yaml:/etc/loki/local-config.yaml:ro
+            - loki-data:/loki
+        command: -config.file=/etc/loki/local-config.yaml
+        healthcheck:
+            test: ["CMD", "wget", "--spider", "-q", "http://localhost:3100/ready"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+
+    alloy:
+        image: grafana/alloy:latest
+        restart: always
+        ports:
+            - "12345:12345"     # Alloy UI
+        volumes:
+            - ../alloy/alloy-config.alloy:/etc/alloy/config.alloy:ro
+            - /var/run/docker.sock:/var/run/docker.sock:ro
+        command: run --server.http.listen-addr=0.0.0.0:12345 /etc/alloy/config.alloy
+        depends_on:
+            loki:
+                condition: service_healthy
+        user: root
+
+    grafana:
+        image: grafana/grafana:11.0.0
+        restart: always
+        ports:
+            - "3000:3000"
+        environment:
+            - GF_SECURITY_ADMIN_USER=admin
+            - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin123}
+            - GF_USERS_ALLOW_SIGN_UP=false
+        volumes:
+            - grafana-data:/var/lib/grafana
+            - ../grafana/provisioning:/etc/grafana/provisioning:ro
+        depends_on:
+            loki:
+                condition: service_healthy
+
 volumes:
     postgres-user-data:
     postgres-accommodation-data:
     postgres-reservation-data:
     mongodb-data:
+    loki-data:
+    grafana-data:
