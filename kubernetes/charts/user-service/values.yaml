@@ -65,7 +65,13 @@ ingress:
         - path: /api/users
           pathType: Prefix
 
+# JWT configuration
+jwt:
+  secret: "dev-jwt-secret-change-in-production"  # Override in production with strong random secret
+
 # Additional environment variables
 extraEnv: []
 # - name: LOG_LEVEL
 #   value: "info"
+# - name: CORS_ORIGIN
+#   value: "https://trubanb.com,https://www.trubanb.com"

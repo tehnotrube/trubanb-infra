@@ -5,10 +5,13 @@ metadata:
   name: {{ include "user-service.fullname" . }}
   labels:
     {{- include "user-service.labels" . | nindent 4 }}
-  {{- with .Values.ingress.annotations }}
   annotations:
+    {{- with .Values.ingress.annotations }}
     {{- toYaml . | nindent 4 }}
-  {{- end }}
+    {{- end }}
+    {{- if .Values.kong.jwt.enabled }}
+    konghq.com/plugins: jwt-auth,jwt-header-transformer
+    {{- end }}
 spec:
   ingressClassName: {{ .Values.ingress.className }}
   {{- if .Values.ingress.tls }}

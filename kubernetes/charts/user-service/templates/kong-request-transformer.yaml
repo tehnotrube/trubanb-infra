@@ -1,0 +1,15 @@
+{{- if .Values.kong.jwt.enabled -}}
+apiVersion: configuration.konghq.com/v1
+kind: KongPlugin
+metadata:
+  name: jwt-header-transformer
+  labels:
+    {{- include "user-service.labels" . | nindent 4 }}
+plugin: request-transformer
+config:
+  add:
+    headers:
+      - "X-User-Id:$(X-Consumer-Custom-ID)"
+      - "X-User-Email:$(X-Credential-Username)"
+      - "X-User-Role:$(X-Anonymous-Consumer)"
+{{- end }}

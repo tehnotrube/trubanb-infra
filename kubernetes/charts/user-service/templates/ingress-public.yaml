@@ -1,0 +1,50 @@
+{{- if and .Values.ingress.enabled .Values.kong.jwt.enabled -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "user-service.fullname" . }}-public
+  labels:
+    {{- include "user-service.labels" . | nindent 4 }}
+  annotations:
+    {{- with .Values.ingress.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+    # NO JWT plugin for public routes
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  rules:
+  {{- range .Values.ingress.hosts }}
+    - host: {{ .host | quote }}
+      http:
+        paths:
+        # Public auth routes
+        - path: /api/users/auth/login
+          pathType: Exact
+          backend:
+            service:
+              name: {{ include "user-service.fullname" $ }}
+              port:
+                number: {{ $.Values.service.port }}
+        - path: /api/users/auth/register
+          pathType: Exact
+          backend:
+            service:
+              name: {{ include "user-service.fullname" $ }}
+              port:
+                number: {{ $.Values.service.port }}
+        - path: /api/users/auth/refresh
+          pathType: Exact
+          backend:
+            service:
+              name: {{ include "user-service.fullname" $ }}
+              port:
+                number: {{ $.Values.service.port }}
+        - path: /api/users/health
+          pathType: Exact
+          backend:
+            service:
+              name: {{ include "user-service.fullname" $ }}
+              port:
+                number: {{ $.Values.service.port }}
+  {{- end }}
+{{- end }}

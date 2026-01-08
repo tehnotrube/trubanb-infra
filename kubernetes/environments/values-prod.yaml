@@ -85,17 +85,29 @@ user-service:
     tag: "v1.0.0"
     pullPolicy: Always
   service:
-    port: 3001
+    port: 3000
   livenessProbe:
     httpGet:
-      path: /
-      port: 3001
+      path: /health
+      port: 3000
   readinessProbe:
     httpGet:
-      path: /
-      port: 3001
+      path: /health
+      port: 3000
+
+  # JWT Configuration - MUST use external secret manager in production
+  jwt:
+    secret: ""  # Will be overridden by external secret
+
+  # Kong JWT Configuration
+  kong:
+    jwt:
+      enabled: true
+      secret: ""  # Will be overridden by external secret
+
   database:
     existingSecret: "user-db-secret"
+
   resources:
     limits:
       cpu: 1000m
@@ -103,6 +115,7 @@ user-service:
     requests:
       cpu: 500m
       memory: 512Mi
+
   ingress:
     enabled: true
     annotations:
@@ -118,6 +131,15 @@ user-service:
       - secretName: trubanb-api-tls
         hosts:
           - api.trubanb.com
+
+  # Production environment variables
+  extraEnv:
+    - name: NODE_ENV
+      value: "production"
+    - name: PORT
+      value: "3000"
+    - name: CORS_ORIGIN
+      value: "https://trubanb.com,https://www.trubanb.com"
 
 accommodation-service:
   enabled: true

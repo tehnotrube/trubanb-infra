@@ -82,18 +82,18 @@ user-service:
   replicaCount: 1
   image:
     repository: ghcr.io/tehnotrube/trubanb-user-service
-    tag: "latest"
+    tag: "beta"
     pullPolicy: IfNotPresent
   service:
-    port: 3001
+    port: 3000
   livenessProbe:
     httpGet:
-      path: /
-      port: 3001
+      path: /health
+      port: 3000
   readinessProbe:
     httpGet:
-      path: /
-      port: 3001
+      path: /health
+      port: 3000
   resources:
     limits:
       cpu: 200m
@@ -101,8 +101,20 @@ user-service:
     requests:
       cpu: 100m
       memory: 128Mi
+
+  # JWT Configuration (stored in Kubernetes Secret)
+  jwt:
+    secret: "dev-jwt-secret-change-in-production"  # MUST match Kong JWT secret
+
+  # Kong JWT Configuration
+  kong:
+    jwt:
+      enabled: true
+      secret: "dev-jwt-secret-change-in-production"  # MUST match JWT_SECRET in service
+
   ingress:
     enabled: true
+    className: kong
     annotations:
       konghq.com/strip-path: "true"
     hosts:
@@ -111,23 +123,42 @@ user-service:
           - path: /api/users
             pathType: Prefix
 
+  # Environment variables for the service
+  extraEnv:
+    - name: DATABASE_HOST
+      value: "trubanb-postgresql-user"
+    - name: DATABASE_PORT
+      value: "5432"
+    - name: DATABASE_USER
+      value: "userservice"
+    - name: DATABASE_PASSWORD
+      value: "dev-user-password"
+    - name: DATABASE_NAME
+      value: "userdb"
+    - name: NODE_ENV
+      value: "development"
+    - name: PORT
+      value: "3000"
+    - name: CORS_ORIGIN
+      value: "*"
+
 accommodation-service:
   enabled: true
   replicaCount: 1
   image:
     repository: ghcr.io/tehnotrube/trubanb-accommodation-service
-    tag: "latest"
+    tag: "beta"
     pullPolicy: IfNotPresent
   service:
-    port: 3001
+    port: 3000
   livenessProbe:
     httpGet:
-      path: /
-      port: 3001
+      path: /health
+      port: 3000
   readinessProbe:
     httpGet:
-      path: /
-      port: 3001
+      path: /health
+      port: 3000
   resources:
     limits:
       cpu: 200m
@@ -137,6 +168,8 @@ accommodation-service:
       memory: 128Mi
   ingress:
     enabled: true
+    className: kong
+    publicEnabled: true  # Enable public browsing routes
     annotations:
       konghq.com/strip-path: "true"
     hosts:
@@ -150,18 +183,18 @@ reservation-service:
   replicaCount: 1
   image:
     repository: ghcr.io/tehnotrube/trubanb-reservation-service
-    tag: "latest"
+    tag: "beta"
     pullPolicy: IfNotPresent
   service:
-    port: 3001
+    port: 3000
   livenessProbe:
     httpGet:
-      path: /
-      port: 3001
+      path: /health
+      port: 3000
   readinessProbe:
     httpGet:
-      path: /
-      port: 3001
+      path: /health
+      port: 3000
   resources:
     limits:
       cpu: 200m
@@ -171,6 +204,7 @@ reservation-service:
       memory: 128Mi
   ingress:
     enabled: true
+    className: kong
     annotations:
       konghq.com/strip-path: "true"
     hosts:
@@ -184,18 +218,18 @@ rating-service:
   replicaCount: 1
   image:
     repository: ghcr.io/tehnotrube/trubanb-rating-service
-    tag: "latest"
+    tag: "beta"
     pullPolicy: IfNotPresent
   service:
-    port: 3001
+    port: 3000
   livenessProbe:
     httpGet:
-      path: /
-      port: 3001
+      path: /health
+      port: 3000
   readinessProbe:
     httpGet:
-      path: /
-      port: 3001
+      path: /health
+      port: 3000
   resources:
     limits:
       cpu: 200m
@@ -205,6 +239,7 @@ rating-service:
       memory: 128Mi
   ingress:
     enabled: true
+    className: kong
     annotations:
       konghq.com/strip-path: "true"
     hosts:
