@@ -285,8 +285,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "100 - ((node_filesystem_avail_bytes{mountpoint=\"/\",fstype!=\"rootfs\"} * 100) / node_filesystem_size_bytes{mountpoint=\"/\",fstype!=\"rootfs\"})",
-          "legendFormat": "Root Filesystem Usage",
+          "expr": "100 - ((node_filesystem_avail_bytes{mountpoint=~\"/mnt/host/c|/mnt/host/d|/var/lib\"} * 100) / node_filesystem_size_bytes{mountpoint=~\"/mnt/host/c|/mnt/host/d|/var/lib\"})",
+          "legendFormat": "{{mountpoint}}",
           "range": true,
           "refId": "A"
         }
