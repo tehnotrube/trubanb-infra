@@ -24,7 +24,7 @@ scrape_configs:
   # Host machine metrics (CPU, RAM, filesystem, network)
   - job_name: 'node-exporter'
     static_configs:
-      - targets: ['host.docker.internal:9100']
+      - targets: ['node-exporter:9100']
         labels:
           instance: 'host-machine'
 
