@@ -9,7 +9,7 @@ plugin: request-transformer
 config:
   add:
     headers:
-      - "X-User-Id:$(X-Consumer-Custom-ID)"
-      - "X-User-Email:$(X-Credential-Username)"
-      - "X-User-Role:$(X-Anonymous-Consumer)"
+      - "X-User-Id:$(jwt_claim_sub)"
+      - "X-User-Email:$(jwt_claim_email)"
+      - "X-User-Role:$(jwt_claim_role)"
 {{- end }}

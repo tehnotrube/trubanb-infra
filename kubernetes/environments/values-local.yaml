@@ -1,0 +1,242 @@
+# Local Development Environment Values
+# Use this file to deploy services with locally built Docker images
+
+kong:
+  enabled: true
+  proxy:
+    type: NodePort
+    http:
+      nodePort: 30080
+    tls:
+      nodePort: 30443
+
+postgresql-user:
+  enabled: true
+  auth:
+    username: "userservice"
+    password: "dev-user-password"
+    database: "userdb"
+  primary:
+    persistence:
+      size: 500Mi
+    resources:
+      limits:
+        cpu: 200m
+        memory: 256Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+
+postgresql-accommodation:
+  enabled: true
+  auth:
+    username: "accommodationservice"
+    password: "dev-accommodation-password"
+    database: "accommodationdb"
+  primary:
+    persistence:
+      size: 500Mi
+    resources:
+      limits:
+        cpu: 200m
+        memory: 256Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+
+postgresql-reservation:
+  enabled: true
+  auth:
+    username: "reservationservice"
+    password: "dev-reservation-password"
+    database: "reservationdb"
+  primary:
+    persistence:
+      size: 500Mi
+    resources:
+      limits:
+        cpu: 200m
+        memory: 256Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+
+mongodb:
+  enabled: true
+  auth:
+    username: "ratingservice"
+    password: "dev-mongo-password"
+    rootPassword: "dev-mongo-root"
+    database: "ratingsdb"
+  persistence:
+    size: 500Mi
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+# User Service - Local Image Configuration
+user-service:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: trubanb-user-service
+    tag: "local"
+    pullPolicy: Never  # CRITICAL: Use local images, don't pull from registry
+  service:
+    port: 3000
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: 3000
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 3000
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+  # JWT Configuration (stored in Kubernetes Secret)
+  jwt:
+    secret: "dev-jwt-secret-change-in-production"  # MUST match Kong JWT secret
+
+  # Kong JWT Configuration
+  kong:
+    jwt:
+      enabled: true
+      secret: "dev-jwt-secret-change-in-production"  # MUST match JWT_SECRET in service
+
+  ingress:
+    enabled: true
+    className: kong
+    annotations:
+      konghq.com/strip-path: "false"
+    hosts:
+      - host: localhost
+        paths:
+          - path: /api/users
+            pathType: Prefix
+
+  # Environment variables for the service
+  extraEnv:
+    - name: NODE_ENV
+      value: "development"
+    - name: CORS_ORIGIN
+      value: "*"
+
+# Accommodation Service - Local Image Configuration
+accommodation-service:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: trubanb-accommodation-service
+    tag: "local"
+    pullPolicy: Never  # CRITICAL: Use local images, don't pull from registry
+  service:
+    port: 3000
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: 3000
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 3000
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  ingress:
+    enabled: true
+    className: kong
+    publicEnabled: true  # Enable public browsing routes
+    annotations:
+      konghq.com/strip-path: "true"
+    hosts:
+      - host: localhost
+        paths:
+          - path: /api/accommodations
+            pathType: Prefix
+
+# Reservation Service - Local Image Configuration
+reservation-service:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: trubanb-reservation-service
+    tag: "local"
+    pullPolicy: Never  # CRITICAL: Use local images, don't pull from registry
+  service:
+    port: 3000
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: 3000
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 3000
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  ingress:
+    enabled: true
+    className: kong
+    annotations:
+      konghq.com/strip-path: "true"
+    hosts:
+      - host: localhost
+        paths:
+          - path: /api/reservations
+            pathType: Prefix
+
+# Rating Service - Local Image Configuration
+rating-service:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: trubanb-rating-service
+    tag: "local"
+    pullPolicy: Never  # CRITICAL: Use local images, don't pull from registry
+  service:
+    port: 3000
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: 3000
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 3000
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  ingress:
+    enabled: true
+    className: kong
+    annotations:
+      konghq.com/strip-path: "true"
+    hosts:
+      - host: localhost
+        paths:
+          - path: /api/ratings
+            pathType: Prefix

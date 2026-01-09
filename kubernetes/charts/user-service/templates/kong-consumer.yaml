@@ -8,4 +8,6 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: kong
 username: trubanb-jwt-issuer
+credentials:
+  - trubanb-jwt-credential
 {{- end }}

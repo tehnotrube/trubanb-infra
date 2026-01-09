@@ -10,7 +10,7 @@ config:
   secret_is_base64: false
   claims_to_verify:
     - exp
-  key_claim_name: sub
+  key_claim_name: iss
   header_names:
     - Authorization
   maximum_expiration: 86400
