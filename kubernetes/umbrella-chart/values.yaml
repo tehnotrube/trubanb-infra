@@ -5,23 +5,31 @@
 # Kong API Gateway Configuration
 kong:
   enabled: true
-  
+
   ingressController:
     enabled: true
     installCRDs: false
-  
+
   proxy:
     type: LoadBalancer
-  
+
   env:
     database: "off"  # DB-less mode
-  
+
   # Admin API (for management)
   admin:
     enabled: true
     type: ClusterIP
     http:
       enabled: true
+
+  # JWT Authentication Configuration (shared across all services)
+  jwt:
+    enabled: false  # Enable in environment-specific values files
+    secret: ""  # Override in environment values (local/dev/prod)
+    issuerKey: "trubanb-service"  # JWT issuer key
+    consumerUsername: "trubanb-jwt-issuer"  # Kong consumer username
+    maximumExpiration: 86400  # 24 hours in seconds
 
 # ============================================================================
 # POSTGRESQL DATABASES

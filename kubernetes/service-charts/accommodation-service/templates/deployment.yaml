@@ -27,15 +27,15 @@ spec:
           containerPort: {{ .Values.service.port }}
           protocol: TCP
         env:
-        - name: DATABASE_HOST
+        - name: DB_HOST
           value: {{ include "accommodation-service.databaseHost" . | quote }}
-        - name: DATABASE_PORT
+        - name: DB_PORT
           value: {{ .Values.database.port | quote }}
-        - name: DATABASE_NAME
+        - name: DB_NAME
           value: {{ .Values.database.name | quote }}
-        - name: DATABASE_USER
+        - name: DB_USER
           value: {{ .Values.database.username | default "accommodationservice" | quote }}
-        - name: DATABASE_PASSWORD
+        - name: DB_PASSWORD
           valueFrom:
             secretKeyRef:
               name: {{ include "accommodation-service.databaseSecret" . }}

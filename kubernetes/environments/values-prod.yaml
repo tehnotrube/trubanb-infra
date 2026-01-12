@@ -9,6 +9,11 @@ kong:
   env:
     database: "off"
 
+  # JWT Authentication Configuration (shared across all services)
+  jwt:
+    enabled: true
+    secret: ""  # MUST be set via external secret manager in production
+
 postgresql-user:
   enabled: true
   auth:
@@ -88,22 +93,16 @@ user-service:
     port: 3000
   livenessProbe:
     httpGet:
-      path: /health
+      path: /api/users/health
       port: 3000
   readinessProbe:
     httpGet:
-      path: /health
+      path: /api/users/health
       port: 3000
 
   # JWT Configuration - MUST use external secret manager in production
   jwt:
     secret: ""  # Will be overridden by external secret
-
-  # Kong JWT Configuration
-  kong:
-    jwt:
-      enabled: true
-      secret: ""  # Will be overridden by external secret
 
   database:
     existingSecret: "user-db-secret"
@@ -117,10 +116,12 @@ user-service:
       memory: 512Mi
 
   ingress:
+    jwtEnabled: true  # Enable JWT protection for this service
+    publicEnabled: true  # Enable public routes (login, register, health)
     enabled: true
     annotations:
       cert-manager.io/cluster-issuer: "letsencrypt-prod"
-      konghq.com/strip-path: "true"
+      konghq.com/strip-path: "false"
       konghq.com/preserve-host: "true"
     hosts:
       - host: api.trubanb.com
@@ -152,11 +153,11 @@ accommodation-service:
     port: 3001
   livenessProbe:
     httpGet:
-      path: /
+      path: /api/accommodations/health
       port: 3001
   readinessProbe:
     httpGet:
-      path: /
+      path: /api/accommodations/health
       port: 3001
   database:
     existingSecret: "accommodation-db-secret"
@@ -169,9 +170,10 @@ accommodation-service:
       memory: 512Mi
   ingress:
     enabled: true
+    jwtEnabled: true  # Enable JWT protection for this service
     annotations:
       cert-manager.io/cluster-issuer: "letsencrypt-prod"
-      konghq.com/strip-path: "true"
+      konghq.com/strip-path: "false"
       konghq.com/preserve-host: "true"
     hosts:
       - host: api.trubanb.com
@@ -199,11 +201,11 @@ rating-service:
     port: 3001
   livenessProbe:
     httpGet:
-      path: /
+      path: /api/ratings/health
       port: 3001
   readinessProbe:
     httpGet:
-      path: /
+      path: /api/ratings/health
       port: 3001
   mongodb:
     existingSecret: "mongodb-secret"
@@ -216,9 +218,10 @@ rating-service:
       memory: 512Mi
   ingress:
     enabled: true
+    jwtEnabled: true  # Enable JWT protection for this service
     annotations:
       cert-manager.io/cluster-issuer: "letsencrypt-prod"
-      konghq.com/strip-path: "true"
+      konghq.com/strip-path: "false"
       konghq.com/preserve-host: "true"
     hosts:
       - host: api.trubanb.com

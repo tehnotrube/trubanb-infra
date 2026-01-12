@@ -34,7 +34,7 @@ resources:
 # Health checks with thresholds
 livenessProbe:
   httpGet:
-    path: /health
+    path: /api/users/health
     port: 3001
   initialDelaySeconds: 30
   periodSeconds: 10
@@ -44,7 +44,7 @@ livenessProbe:
 
 readinessProbe:
   httpGet:
-    path: /ready
+    path: /api/users/health
     port: 3001
   initialDelaySeconds: 10
   periodSeconds: 5

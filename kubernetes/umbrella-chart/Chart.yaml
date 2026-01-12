@@ -42,23 +42,23 @@ dependencies:
   # User Service
   - name: user-service
     version: "0.1.0"
-    repository: "file://../charts/user-service"
+    repository: "file://../service-charts/user-service"
     condition: user-service.enabled
   
   # Accommodation Service
   - name: accommodation-service
     version: "0.1.0"
-    repository: "file://../charts/accommodation-service"
+    repository: "file://../service-charts/accommodation-service"
     condition: accommodation-service.enabled
 
   # Reservation Service
   - name: reservation-service
     version: "0.1.0"
-    repository: "file://../charts/reservation-service"
+    repository: "file://../service-charts/reservation-service"
     condition: reservation-service.enabled
 
   # Rating Service
   - name: rating-service
     version: "0.1.0"
-    repository: "file://../charts/rating-service"
+    repository: "file://../service-charts/rating-service"
     condition: rating-service.enabled

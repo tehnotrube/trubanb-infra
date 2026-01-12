@@ -71,3 +71,6 @@ Write-Host "     helm upgrade --install trubanb . -f ../environments/values-loca
 Write-Host "  3. Check deployment: " -NoNewline -ForegroundColor Gray
 Write-Host "kubectl get pods -n trubanb-dev" -ForegroundColor White
 Write-Host ""
+
+# Return to original directory
+Set-Location $PSScriptRoot

@@ -2,15 +2,15 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ include "user-service.fullname" . }}
+  name: {{ include "rating-service.fullname" . }}
   labels:
-    {{- include "user-service.labels" . | nindent 4 }}
+    {{- include "rating-service.labels" . | nindent 4 }}
   annotations:
     {{- with .Values.ingress.annotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
-    {{- if .Values.kong.jwt.enabled }}
-    konghq.com/plugins: jwt-auth,jwt-header-transformer
+    {{- if .Values.ingress.jwtEnabled }}
+    konghq.com/plugins: {{ .Release.Name }}-jwt-auth,{{ .Release.Name }}-jwt-claims-to-headers
     {{- end }}
 spec:
   ingressClassName: {{ .Values.ingress.className }}
@@ -34,7 +34,7 @@ spec:
             pathType: {{ .pathType }}
             backend:
               service:
-                name: {{ include "user-service.fullname" $ }}
+                name: {{ include "rating-service.fullname" $ }}
                 port:
                   number: {{ $.Values.service.port }}
         {{- end }}

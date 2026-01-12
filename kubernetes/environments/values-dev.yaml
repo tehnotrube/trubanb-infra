@@ -9,6 +9,11 @@ kong:
     tls:
       nodePort: 30443
 
+  # JWT Authentication Configuration (shared across all services)
+  jwt:
+    enabled: true
+    secret: "dev-jwt-secret-change-in-production"
+
 postgresql-user:
   enabled: true
   auth:
@@ -86,13 +91,24 @@ user-service:
     pullPolicy: IfNotPresent
   service:
     port: 3000
+
+  # Database configuration
+  database:
+    host: "trubanb-postgresql-user"
+    port: "5432"
+    name: "userdb"
+    username: "userservice"
+    existingSecret: "trubanb-postgresql-user"
+    secretKeys:
+      passwordKey: "password"
+
   livenessProbe:
     httpGet:
-      path: /health
+      path: /api/users/health
       port: 3000
   readinessProbe:
     httpGet:
-      path: /health
+      path: /api/users/health
       port: 3000
   resources:
     limits:
@@ -106,17 +122,13 @@ user-service:
   jwt:
     secret: "dev-jwt-secret-change-in-production"  # MUST match Kong JWT secret
 
-  # Kong JWT Configuration
-  kong:
-    jwt:
-      enabled: true
-      secret: "dev-jwt-secret-change-in-production"  # MUST match JWT_SECRET in service
-
   ingress:
+    jwtEnabled: true  # Enable JWT protection for this service
+    publicEnabled: true  # Enable public routes (login, register, health)
     enabled: true
     className: kong
     annotations:
-      konghq.com/strip-path: "true"
+      konghq.com/strip-path: "false"
     hosts:
       - host: localhost
         paths:
@@ -125,16 +137,6 @@ user-service:
 
   # Environment variables for the service
   extraEnv:
-    - name: DATABASE_HOST
-      value: "trubanb-postgresql-user"
-    - name: DATABASE_PORT
-      value: "5432"
-    - name: DATABASE_USER
-      value: "userservice"
-    - name: DATABASE_PASSWORD
-      value: "dev-user-password"
-    - name: DATABASE_NAME
-      value: "userdb"
     - name: NODE_ENV
       value: "development"
     - name: PORT
@@ -153,11 +155,11 @@ accommodation-service:
     port: 3000
   livenessProbe:
     httpGet:
-      path: /health
+      path: /api/accommodations/health
       port: 3000
   readinessProbe:
     httpGet:
-      path: /health
+      path: /api/accommodations/health
       port: 3000
   resources:
     limits:
@@ -168,15 +170,25 @@ accommodation-service:
       memory: 128Mi
   ingress:
     enabled: true
+    jwtEnabled: true  # Enable JWT protection for this service
     className: kong
     publicEnabled: true  # Enable public browsing routes
     annotations:
-      konghq.com/strip-path: "true"
+      konghq.com/strip-path: "false"
     hosts:
       - host: localhost
         paths:
           - path: /api/accommodations
             pathType: Prefix
+
+  # Environment variables for the service
+  extraEnv:
+    - name: NODE_ENV
+      value: "development"
+    - name: PORT
+      value: "3000"
+    - name: CORS_ORIGIN
+      value: "*"
 
 reservation-service:
   enabled: true
@@ -189,11 +201,11 @@ reservation-service:
     port: 3000
   livenessProbe:
     httpGet:
-      path: /health
+      path: /api/reservations/health
       port: 3000
   readinessProbe:
     httpGet:
-      path: /health
+      path: /api/reservations/health
       port: 3000
   resources:
     limits:
@@ -204,9 +216,10 @@ reservation-service:
       memory: 128Mi
   ingress:
     enabled: true
+    jwtEnabled: true  # Enable JWT protection for this service
     className: kong
     annotations:
-      konghq.com/strip-path: "true"
+      konghq.com/strip-path: "false"
     hosts:
       - host: localhost
         paths:
@@ -224,11 +237,11 @@ rating-service:
     port: 3000
   livenessProbe:
     httpGet:
-      path: /health
+      path: /api/ratings/health
       port: 3000
   readinessProbe:
     httpGet:
-      path: /health
+      path: /api/ratings/health
       port: 3000
   resources:
     limits:
@@ -239,9 +252,10 @@ rating-service:
       memory: 128Mi
   ingress:
     enabled: true
+    jwtEnabled: true  # Enable JWT protection for this service
     className: kong
     annotations:
-      konghq.com/strip-path: "true"
+      konghq.com/strip-path: "false"
     hosts:
       - host: localhost
         paths:
