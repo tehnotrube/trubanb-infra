@@ -232,3 +232,62 @@ rating-service:
       - secretName: trubanb-api-tls
         hosts:
           - api.trubanb.com
+
+notification-service:
+  enabled: true
+  replicaCount: 3
+  image:
+    repository: ghcr.io/tehnotrube/trubanb-notification-service
+    tag: "v1.0.0"
+    pullPolicy: Always
+  service:
+    port: 3001
+  livenessProbe:
+    httpGet:
+      path: /api/notifications/health
+      port: 3001
+  readinessProbe:
+    httpGet:
+      path: /api/notifications/health
+      port: 3001
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 500m
+      memory: 512Mi
+  ingress:
+    enabled: true
+    jwtEnabled: true  # Enable JWT protection for this service
+    annotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      konghq.com/strip-path: "false"
+      konghq.com/preserve-host: "true"
+    hosts:
+      - host: api.trubanb.com
+        paths:
+          - path: /api/notifications
+            pathType: Prefix
+    tls:
+      - secretName: trubanb-api-tls
+        hosts:
+          - api.trubanb.com
+
+  # Production environment variables
+  extraEnv:
+    - name: NODE_ENV
+      value: "production"
+    - name: PORT
+      value: "3001"
+    # SMTP configuration should use external secrets in production
+    # - name: SMTP_HOST
+    #   valueFrom:
+    #     secretKeyRef:
+    #       name: notification-secrets
+    #       key: smtp-host
+    # - name: SMTP_PORT
+    #   valueFrom:
+    #     secretKeyRef:
+    #       name: notification-secrets
+    #       key: smtp-port

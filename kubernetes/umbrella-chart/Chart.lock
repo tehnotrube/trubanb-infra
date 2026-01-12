@@ -26,5 +26,8 @@ dependencies:
 - name: rating-service
   repository: file://../service-charts/rating-service
   version: 0.1.0
-digest: sha256:23ab94a94ab0e1cd7385794b167f07b7fbbbf553f6cbe97ca0dd479ceb6ae44c
-generated: "2026-01-11T22:53:26.5815412+01:00"
+- name: notification-service
+  repository: file://../service-charts/notification-service
+  version: 0.1.0
+digest: sha256:d8c8eccb1f263e80fa7ded4e1a84334ebe8ce27c521bc7e7ba7c673407f25c8a
+generated: "2026-01-12T18:24:21.8674734+01:00"

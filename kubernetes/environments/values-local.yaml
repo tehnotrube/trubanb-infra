@@ -244,3 +244,40 @@ rating-service:
         paths:
           - path: /api/ratings
             pathType: Prefix
+
+# Notification Service - Local Image Configuration
+notification-service:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: trubanb-notification-service
+    tag: "local"
+    pullPolicy: Never  # CRITICAL: Use local images, don't pull from registry
+  service:
+    port: 3000
+  livenessProbe:
+    httpGet:
+      path: /api/notifications/health
+      port: 3000
+  readinessProbe:
+    httpGet:
+      path: /api/notifications/health
+      port: 3000
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  ingress:
+    enabled: true
+    jwtEnabled: true  # Enable JWT protection for this service
+    className: kong
+    annotations:
+      konghq.com/strip-path: "false"
+    hosts:
+      - host: localhost
+        paths:
+          - path: /api/notifications
+            pathType: Prefix

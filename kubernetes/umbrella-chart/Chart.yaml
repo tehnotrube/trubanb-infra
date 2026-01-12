@@ -62,3 +62,9 @@ dependencies:
     version: "0.1.0"
     repository: "file://../service-charts/rating-service"
     condition: rating-service.enabled
+
+  # Notification Service
+  - name: notification-service
+    version: "0.1.0"
+    repository: "file://../service-charts/notification-service"
+    condition: notification-service.enabled

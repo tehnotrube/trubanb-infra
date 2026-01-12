@@ -1,5 +1,5 @@
 # Build Script for Trubanb Microservices
-# This script builds all 4 microservices with the 'local' tag for use with Docker Desktop Kubernetes
+# This script builds all 5 microservices with the 'local' tag for use with Docker Desktop Kubernetes
 # Run from: trubanb-infra directory
 
 Write-Host "`n========================================" -ForegroundColor Cyan
@@ -16,7 +16,8 @@ $services = @(
     @{Name="User Service"; Path="$rootDir\trubanb-user-service"; Image="trubanb-user-service:local"},
     @{Name="Accommodation Service"; Path="$rootDir\trubanb-accommodation-service"; Image="trubanb-accommodation-service:local"},
     @{Name="Reservation Service"; Path="$rootDir\trubanb-reservation-service"; Image="trubanb-reservation-service:local"},
-    @{Name="Rating Service"; Path="$rootDir\trubanb-rating-service"; Image="trubanb-rating-service:local"}
+    @{Name="Rating Service"; Path="$rootDir\trubanb-rating-service"; Image="trubanb-rating-service:local"},
+    @{Name="Notification Service"; Path="$rootDir\trubanb-notification-service"; Image="trubanb-notification-service:local"}
 )
 
 $successCount = 0
