@@ -40,6 +40,11 @@ spec:
             secretKeyRef:
               name: {{ include "user-service.databaseSecret" . }}
               key: {{ .Values.database.secretKeys.passwordKey }}
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "user-service.fullname" . }}-jwt
+              key: jwt-secret
         {{- with .Values.extraEnv }}
         {{- toYaml . | nindent 8 }}
         {{- end }}

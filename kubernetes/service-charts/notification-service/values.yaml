@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: ghcr.io/tehnotrube/user-service
+  repository: ghcr.io/tehnotrube/notification-service
   pullPolicy: IfNotPresent
   tag: "v1.0.0"
 
@@ -12,17 +12,6 @@ service:
   type: ClusterIP
   port: 3001
 
-# Database configuration
-database:
-  host: ""  # Will be templated in deployment
-  port: "5432"
-  name: "userdb"
-  username: "userservice"
-  # Reference to external secret (created by PostgreSQL chart or manually)
-  existingSecret: ""  # Will be templated
-  secretKeys:
-    passwordKey: "password"
-
 resources:
   limits:
     cpu: 500m
@@ -31,10 +20,10 @@ resources:
     cpu: 250m
     memory: 256Mi
 
-# Health checks with thresholds
+# Enhanced health checks with proper thresholds
 livenessProbe:
   httpGet:
-    path: /health
+    path: /api/notifications/health
     port: 3001
   initialDelaySeconds: 30
   periodSeconds: 10
@@ -44,7 +33,7 @@ livenessProbe:
 
 readinessProbe:
   httpGet:
-    path: /ready
+    path: /api/notifications/health
     port: 3001
   initialDelaySeconds: 10
   periodSeconds: 5
@@ -62,10 +51,14 @@ ingress:
   hosts:
     - host: api.trubanb.local
       paths:
-        - path: /api/users
+        - path: /api/notifications
           pathType: Prefix
 
 # Additional environment variables
 extraEnv: []
 # - name: LOG_LEVEL
 #   value: "info"
+# - name: SMTP_HOST
+#   value: "smtp.example.com"
+# - name: SMTP_PORT
+#   value: "587"

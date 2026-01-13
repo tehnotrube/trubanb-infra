@@ -15,16 +15,19 @@ dependencies:
   repository: https://charts.bitnami.com/bitnami
   version: 18.1.20
 - name: user-service
-  repository: file://../charts/user-service
+  repository: file://../service-charts/user-service
   version: 0.1.0
 - name: accommodation-service
-  repository: file://../charts/accommodation-service
+  repository: file://../service-charts/accommodation-service
   version: 0.1.0
 - name: reservation-service
-  repository: file://../charts/reservation-service
+  repository: file://../service-charts/reservation-service
   version: 0.1.0
 - name: rating-service
-  repository: file://../charts/rating-service
+  repository: file://../service-charts/rating-service
   version: 0.1.0
-digest: sha256:541cb1f143009bd07444af0879e6c8d6963db1d9d2c0e2c8fd88c4a977514c4b
-generated: "2026-01-04T23:17:28.7173609+01:00"
+- name: notification-service
+  repository: file://../service-charts/notification-service
+  version: 0.1.0
+digest: sha256:d8c8eccb1f263e80fa7ded4e1a84334ebe8ce27c521bc7e7ba7c673407f25c8a
+generated: "2026-01-12T18:24:21.8674734+01:00"

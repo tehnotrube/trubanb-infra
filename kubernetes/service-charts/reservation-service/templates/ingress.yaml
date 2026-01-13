@@ -2,13 +2,16 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ include "accommodation-service.fullname" . }}
+  name: {{ include "reservation-service.fullname" . }}
   labels:
-    {{- include "accommodation-service.labels" . | nindent 4 }}
-  {{- with .Values.ingress.annotations }}
+    {{- include "reservation-service.labels" . | nindent 4 }}
   annotations:
+    {{- with .Values.ingress.annotations }}
     {{- toYaml . | nindent 4 }}
-  {{- end }}
+    {{- end }}
+    {{- if .Values.ingress.jwtEnabled }}
+    konghq.com/plugins: {{ .Release.Name }}-jwt-auth,{{ .Release.Name }}-jwt-claims-to-headers
+    {{- end }}
 spec:
   ingressClassName: {{ .Values.ingress.className }}
   {{- if .Values.ingress.tls }}
@@ -31,7 +34,7 @@ spec:
             pathType: {{ .pathType }}
             backend:
               service:
-                name: {{ include "accommodation-service.fullname" $ }}
+                name: {{ include "reservation-service.fullname" $ }}
                 port:
                   number: {{ $.Values.service.port }}
         {{- end }}

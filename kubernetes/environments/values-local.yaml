@@ -1,4 +1,5 @@
-# Development Environment Values
+# Local Development Environment Values
+# Use this file to deploy services with locally built Docker images
 
 kong:
   enabled: true
@@ -82,26 +83,16 @@ mongodb:
       cpu: 100m
       memory: 128Mi
 
+# User Service - Local Image Configuration
 user-service:
   enabled: true
   replicaCount: 1
   image:
-    repository: ghcr.io/tehnotrube/trubanb-user-service
-    tag: "beta"
-    pullPolicy: IfNotPresent
+    repository: trubanb-user-service
+    tag: "local"
+    pullPolicy: Never  # CRITICAL: Use local images, don't pull from registry
   service:
     port: 3000
-
-  # Database configuration
-  database:
-    host: "trubanb-postgresql-user"
-    port: "5432"
-    name: "userdb"
-    username: "userservice"
-    existingSecret: "trubanb-postgresql-user"
-    secretKeys:
-      passwordKey: "password"
-
   livenessProbe:
     httpGet:
       path: /api/users/health
@@ -123,9 +114,9 @@ user-service:
     secret: "dev-jwt-secret-change-in-production"  # MUST match Kong JWT secret
 
   ingress:
+    enabled: true
     jwtEnabled: true  # Enable JWT protection for this service
     publicEnabled: true  # Enable public routes (login, register, health)
-    enabled: true
     className: kong
     annotations:
       konghq.com/strip-path: "false"
@@ -139,18 +130,17 @@ user-service:
   extraEnv:
     - name: NODE_ENV
       value: "development"
-    - name: PORT
-      value: "3000"
     - name: CORS_ORIGIN
       value: "*"
 
+# Accommodation Service - Local Image Configuration
 accommodation-service:
   enabled: true
   replicaCount: 1
   image:
-    repository: ghcr.io/tehnotrube/trubanb-accommodation-service
-    tag: "beta"
-    pullPolicy: IfNotPresent
+    repository: trubanb-accommodation-service
+    tag: "local"
+    pullPolicy: Never  # CRITICAL: Use local images, don't pull from registry
   service:
     port: 3000
   livenessProbe:
@@ -181,22 +171,14 @@ accommodation-service:
           - path: /api/accommodations
             pathType: Prefix
 
-  # Environment variables for the service
-  extraEnv:
-    - name: NODE_ENV
-      value: "development"
-    - name: PORT
-      value: "3000"
-    - name: CORS_ORIGIN
-      value: "*"
-
+# Reservation Service - Local Image Configuration
 reservation-service:
   enabled: true
   replicaCount: 1
   image:
-    repository: ghcr.io/tehnotrube/trubanb-reservation-service
-    tag: "beta"
-    pullPolicy: IfNotPresent
+    repository: trubanb-reservation-service
+    tag: "local"
+    pullPolicy: Never  # CRITICAL: Use local images, don't pull from registry
   service:
     port: 3000
   livenessProbe:
@@ -226,13 +208,14 @@ reservation-service:
           - path: /api/reservations
             pathType: Prefix
 
+# Rating Service - Local Image Configuration
 rating-service:
   enabled: true
   replicaCount: 1
   image:
-    repository: ghcr.io/tehnotrube/trubanb-rating-service
-    tag: "beta"
-    pullPolicy: IfNotPresent
+    repository: trubanb-rating-service
+    tag: "local"
+    pullPolicy: Never  # CRITICAL: Use local images, don't pull from registry
   service:
     port: 3000
   livenessProbe:
@@ -262,13 +245,14 @@ rating-service:
           - path: /api/ratings
             pathType: Prefix
 
+# Notification Service - Local Image Configuration
 notification-service:
   enabled: true
   replicaCount: 1
   image:
-    repository: ghcr.io/tehnotrube/trubanb-notification-service
-    tag: "beta"
-    pullPolicy: IfNotPresent
+    repository: trubanb-notification-service
+    tag: "local"
+    pullPolicy: Never  # CRITICAL: Use local images, don't pull from registry
   service:
     port: 3000
   livenessProbe:
@@ -297,10 +281,3 @@ notification-service:
         paths:
           - path: /api/notifications
             pathType: Prefix
-
-  # Environment variables for the service
-  extraEnv:
-    - name: NODE_ENV
-      value: "development"
-    - name: PORT
-      value: "3000"

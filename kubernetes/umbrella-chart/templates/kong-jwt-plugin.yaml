@@ -1,0 +1,19 @@
+{{- if .Values.kong.jwt.enabled -}}
+apiVersion: configuration.konghq.com/v1
+kind: KongPlugin
+metadata:
+  name: {{ .Release.Name }}-jwt-auth
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+plugin: jwt
+config:
+  secret_is_base64: false
+  claims_to_verify:
+    - exp
+  key_claim_name: iss
+  header_names:
+    - Authorization
+  maximum_expiration: {{ .Values.kong.jwt.maximumExpiration | default 86400 }}
+{{- end }}

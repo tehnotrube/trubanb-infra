@@ -1,18 +1,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "accommodation-service.fullname" . }}
+  name: {{ include "notification-service.fullname" . }}
   labels:
-    {{- include "accommodation-service.labels" . | nindent 4 }}
+    {{- include "notification-service.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      {{- include "accommodation-service.selectorLabels" . | nindent 6 }}
+      {{- include "notification-service.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "accommodation-service.selectorLabels" . | nindent 8 }}
+        {{- include "notification-service.selectorLabels" . | nindent 8 }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -27,19 +27,8 @@ spec:
           containerPort: {{ .Values.service.port }}
           protocol: TCP
         env:
-        - name: DATABASE_HOST
-          value: {{ include "accommodation-service.databaseHost" . | quote }}
-        - name: DATABASE_PORT
-          value: {{ .Values.database.port | quote }}
-        - name: DATABASE_NAME
-          value: {{ .Values.database.name | quote }}
-        - name: DATABASE_USER
-          value: {{ .Values.database.username | default "accommodationservice" | quote }}
-        - name: DATABASE_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: {{ include "accommodation-service.databaseSecret" . }}
-              key: {{ .Values.database.secretKeys.passwordKey }}
+        - name: PORT
+          value: {{ .Values.service.port | quote }}
         {{- with .Values.extraEnv }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
