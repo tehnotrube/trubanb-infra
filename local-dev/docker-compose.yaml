@@ -64,6 +64,25 @@ services:
             timeout: 5s
             retries: 5
 
+    # MinIO for accommodation-service (photo storage)
+    minio:
+        image: minio/minio:latest
+        restart: always
+        environment:
+            MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+            MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin123}
+        ports:
+            - "9000:9000"      # API
+            - "9001:9001"      # Console UI
+        volumes:
+            - minio-data:/data
+        command: server /data --console-address ":9001"
+        healthcheck:
+            test: ["CMD", "mc", "ready", "local"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+
     trubanb-accomodation-service:
         restart: always
         build:
@@ -74,6 +93,8 @@ services:
         depends_on:
             postgresql-accommodation:
                 condition: service_healthy
+            minio:
+                condition: service_healthy
             jaeger:
                 condition: service_healthy
         environment:
@@ -82,6 +103,13 @@ services:
             DB_NAME: accommodationdb
             DB_USER: accommodationservice
             DB_PASSWORD: ${POSTGRES_ACCOMMODATION_PASSWORD:-accommodationpass123}
+            MINIO_ENDPOINT: minio
+            MINIO_PORT: 9000
+            MINIO_USE_SSL: false
+            MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-minioadmin}
+            MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin123}
+            MINIO_BUCKET: accommodations
+            STORAGE_PUBLIC_URL: http://localhost:9000/accommodations
             OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
             OTEL_SERVICE_NAME: accommodation-service
 
@@ -327,6 +355,7 @@ volumes:
     postgres-accommodation-data:
     postgres-reservation-data:
     mongodb-data:
+    minio-data:
     loki-data:
     grafana-data:
     prometheus-data:
