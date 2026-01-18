@@ -143,6 +143,7 @@ services:
             dockerfile: Dockerfile
         ports:
             - "${ACCOMODATION_SERVICE_PORT}:3000"
+            - "${ACCOMODATION_GRPC_PORT:-50051}:50051"
         depends_on:
             postgresql-accommodation:
                 condition: service_healthy
@@ -163,6 +164,7 @@ services:
             MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin123}
             MINIO_BUCKET: accommodations
             STORAGE_PUBLIC_URL: http://localhost:9000/accommodations
+            GRPC_PORT: 50051
             OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
             OTEL_SERVICE_NAME: accommodation-service
             NODE_ENV: ${NODE_ENV:-development}
@@ -205,6 +207,8 @@ services:
         depends_on:
             postgresql-reservation:
                 condition: service_healthy
+            trubanb-accomodation-service:
+                condition: service_started
             jaeger:
                 condition: service_healthy
         environment:
@@ -213,6 +217,7 @@ services:
             DB_NAME: reservationdb
             DB_USER: reservationservice
             DB_PASSWORD: ${POSTGRES_RESERVATION_PASSWORD:-reservationpass123}
+            ACCOMMODATION_GRPC_URL: trubanb-accomodation-service:50051
             OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
             OTEL_SERVICE_NAME: reservation-service
             NODE_ENV: ${NODE_ENV:-development}
