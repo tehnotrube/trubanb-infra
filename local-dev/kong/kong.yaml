@@ -1,0 +1,244 @@
+_format_version: "3.0"
+_transform: true
+
+# ============================================================================
+# CONSUMERS - JWT Authentication
+# ============================================================================
+
+consumers:
+  - username: trubanb-jwt-issuer
+    jwt_secrets:
+      - algorithm: HS256
+        key: trubanb-service
+        secret: dev-jwt-secret-change-in-production
+
+# ============================================================================
+# PLUGINS - Global Configuration
+# ============================================================================
+
+plugins:
+  # Rate limiting (to prevent abuse)
+  - name: rate-limiting
+    config:
+      minute: 100
+      hour: 10000
+      policy: local
+
+  # Request/Response logging
+  - name: file-log
+    config:
+      path: /tmp/kong-access.log
+      reopen: true
+
+  # JWT Claims to Headers Extraction (Global)
+  - name: post-function
+    config:
+      access:
+        - |
+          -- Extract JWT claims and set as headers
+          local auth_header = kong.request.get_header("Authorization")
+          if auth_header and auth_header:match("^Bearer%s+(.+)") then
+            local jwt_token = auth_header:match("^Bearer%s+(.+)")
+            local parts = {}
+            for part in jwt_token:gmatch("[^%.]+") do
+              table.insert(parts, part)
+            end
+
+            if #parts == 3 then
+              -- Decode payload (second part)
+              local decoded = ngx.decode_base64(parts[2])
+              if decoded then
+                -- Extract claims using pattern matching
+                local sub = decoded:match('"sub"%s*:%s*"([^"]+)"')
+                local email = decoded:match('"email"%s*:%s*"([^"]+)"')
+                local role = decoded:match('"role"%s*:%s*"([^"]+)"')
+
+                if sub then
+                  kong.service.request.set_header("X-User-Id", sub)
+                end
+                if email then
+                  kong.service.request.set_header("X-User-Email", email)
+                end
+                if role then
+                  kong.service.request.set_header("X-User-Role", role)
+                end
+                kong.log.info("JWT claims extracted: sub=", sub, " email=", email, " role=", role)
+              end
+            end
+          end
+
+# ============================================================================
+# SERVICES - Backend Microservices
+# ============================================================================
+
+services:
+  # User Service
+  - name: user-service
+    url: http://trubanb-user-service:3000
+    routes:
+      - name: user-service-route
+        paths:
+          - /api/users
+        strip_path: false
+        preserve_host: true
+    plugins:
+      # Enable CORS for all routes
+      - name: cors
+        config:
+          origins:
+            - "*"
+          methods:
+            - GET
+            - POST
+            - PUT
+            - DELETE
+            - PATCH
+            - OPTIONS
+          headers:
+            - Accept
+            - Accept-Version
+            - Content-Length
+            - Content-MD5
+            - Content-Type
+            - Date
+            - Authorization
+          exposed_headers:
+            - Authorization
+          credentials: true
+          max_age: 3600
+
+  # Accommodation Service
+  - name: accommodation-service
+    url: http://trubanb-accomodation-service:3000
+    routes:
+      - name: accommodation-service-route
+        paths:
+          - /api/accommodations
+        strip_path: false
+        preserve_host: true
+    plugins:
+      - name: cors
+        config:
+          origins:
+            - "*"
+          methods:
+            - GET
+            - POST
+            - PUT
+            - DELETE
+            - PATCH
+            - OPTIONS
+          headers:
+            - Accept
+            - Accept-Version
+            - Content-Length
+            - Content-MD5
+            - Content-Type
+            - Date
+            - Authorization
+          exposed_headers:
+            - Authorization
+          credentials: true
+          max_age: 3600
+
+  # Reservation Service
+  - name: reservation-service
+    url: http://trubanb-reservation-service:3000
+    routes:
+      - name: reservation-service-route
+        paths:
+          - /api/reservations
+        strip_path: false
+        preserve_host: true
+    plugins:
+      - name: cors
+        config:
+          origins:
+            - "*"
+          methods:
+            - GET
+            - POST
+            - PUT
+            - DELETE
+            - PATCH
+            - OPTIONS
+          headers:
+            - Accept
+            - Accept-Version
+            - Content-Length
+            - Content-MD5
+            - Content-Type
+            - Date
+            - Authorization
+          exposed_headers:
+            - Authorization
+          credentials: true
+          max_age: 3600
+
+  # Rating Service
+  - name: rating-service
+    url: http://trubanb-rating-service:3000
+    routes:
+      - name: rating-service-route
+        paths:
+          - /api/ratings
+        strip_path: false
+        preserve_host: true
+    plugins:
+      - name: cors
+        config:
+          origins:
+            - "*"
+          methods:
+            - GET
+            - POST
+            - PUT
+            - DELETE
+            - PATCH
+            - OPTIONS
+          headers:
+            - Accept
+            - Accept-Version
+            - Content-Length
+            - Content-MD5
+            - Content-Type
+            - Date
+            - Authorization
+          exposed_headers:
+            - Authorization
+          credentials: true
+          max_age: 3600
+
+  # Notification Service
+  - name: notification-service
+    url: http://trubanb-notification-service:3000
+    routes:
+      - name: notification-service-route
+        paths:
+          - /api/notifications
+        strip_path: false
+        preserve_host: true
+    plugins:
+      - name: cors
+        config:
+          origins:
+            - "*"
+          methods:
+            - GET
+            - POST
+            - PUT
+            - DELETE
+            - PATCH
+            - OPTIONS
+          headers:
+            - Accept
+            - Accept-Version
+            - Content-Length
+            - Content-MD5
+            - Content-Type
+            - Date
+            - Authorization
+          exposed_headers:
+            - Authorization
+          credentials: true
+          max_age: 3600
