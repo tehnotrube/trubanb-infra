@@ -437,7 +437,7 @@ services:
             - GF_USERS_ALLOW_SIGN_UP=false
         volumes:
             - grafana-data:/var/lib/grafana
-            - ../grafana/provisioning:/etc/grafana/provisioning:ro
+            - ./grafana/provisioning:/etc/grafana/provisioning:ro
         depends_on:
             loki:
                 condition: service_healthy
