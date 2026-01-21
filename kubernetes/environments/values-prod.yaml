@@ -86,8 +86,8 @@ user-service:
   enabled: true
   replicaCount: 3
   image:
-    repository: ghcr.io/tehnotrube/trubanb-pipeline-prod
-    tag: "v1.0.0"
+    repository: ghcr.io/tehnotrube/trubanb-user-service
+    tag: "latest"
     pullPolicy: Always
   service:
     port: 3000
@@ -146,8 +146,8 @@ accommodation-service:
   enabled: true
   replicaCount: 3
   image:
-    repository: ghcr.io/tehnotrube/trubanb-pipeline-prod
-    tag: "v1.0.0"
+    repository: ghcr.io/tehnotrube/trubanb-accommodation-service
+    tag: "latest"
     pullPolicy: Always
   service:
     port: 3001
@@ -194,8 +194,8 @@ rating-service:
   enabled: true
   replicaCount: 3
   image:
-    repository: ghcr.io/tehnotrube/trubanb-pipeline-prod
-    tag: "v1.0.0"
+    repository: ghcr.io/tehnotrube/trubanb-rating-service
+    tag: "latest"
     pullPolicy: Always
   service:
     port: 3001
