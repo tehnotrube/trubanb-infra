@@ -68,3 +68,31 @@ dependencies:
     version: "0.1.0"
     repository: "file://../service-charts/notification-service"
     condition: notification-service.enabled
+
+  # ============================================================================
+  # OBSERVABILITY STACK
+  # ============================================================================
+
+  # Prometheus Stack (includes Prometheus, Alertmanager, Grafana, node-exporter)
+  - name: kube-prometheus-stack
+    version: "67.4.0"
+    repository: https://prometheus-community.github.io/helm-charts
+    condition: kube-prometheus-stack.enabled
+
+  # Loki - Log aggregation
+  - name: loki
+    version: "6.24.0"
+    repository: https://grafana.github.io/helm-charts
+    condition: loki.enabled
+
+  # Promtail - Log collector (ships logs to Loki)
+  - name: promtail
+    version: "6.16.6"
+    repository: https://grafana.github.io/helm-charts
+    condition: promtail.enabled
+
+  # Jaeger - Distributed tracing
+  - name: jaeger
+    version: "3.4.1"
+    repository: https://jaegertracing.github.io/helm-charts
+    condition: jaeger.enabled

@@ -93,6 +93,17 @@ user-service:
     pullPolicy: Never  # CRITICAL: Use local images, don't pull from registry
   service:
     port: 3000
+
+  # Database configuration
+  database:
+    host: "trubanb-postgresql-user"
+    port: "5432"
+    name: "userdb"
+    username: "userservice"
+    existingSecret: "trubanb-postgresql-user"
+    secretKeys:
+      passwordKey: "password"
+
   livenessProbe:
     httpGet:
       path: /api/users/health
@@ -132,6 +143,10 @@ user-service:
       value: "development"
     - name: CORS_ORIGIN
       value: "*"
+    - name: OTEL_EXPORTER_OTLP_ENDPOINT
+      value: "http://trubanb-jaeger-collector:4318"
+    - name: OTEL_SERVICE_NAME
+      value: "user-service"
 
 # Accommodation Service - Local Image Configuration
 accommodation-service:
@@ -143,6 +158,17 @@ accommodation-service:
     pullPolicy: Never  # CRITICAL: Use local images, don't pull from registry
   service:
     port: 3000
+
+  # Database configuration
+  database:
+    host: "trubanb-postgresql-accommodation"
+    port: "5432"
+    name: "accommodationdb"
+    username: "accommodationservice"
+    existingSecret: "trubanb-postgresql-accommodation"
+    secretKeys:
+      passwordKey: "password"
+
   livenessProbe:
     httpGet:
       path: /api/accommodations/health
@@ -171,6 +197,14 @@ accommodation-service:
           - path: /api/accommodations
             pathType: Prefix
 
+  extraEnv:
+    - name: NODE_ENV
+      value: "development"
+    - name: OTEL_EXPORTER_OTLP_ENDPOINT
+      value: "http://trubanb-jaeger-collector:4318"
+    - name: OTEL_SERVICE_NAME
+      value: "accommodation-service"
+
 # Reservation Service - Local Image Configuration
 reservation-service:
   enabled: true
@@ -181,6 +215,17 @@ reservation-service:
     pullPolicy: Never  # CRITICAL: Use local images, don't pull from registry
   service:
     port: 3000
+
+  # Database configuration
+  database:
+    host: "trubanb-postgresql-reservation"
+    port: "5432"
+    name: "reservationdb"
+    username: "reservationservice"
+    existingSecret: "trubanb-postgresql-reservation"
+    secretKeys:
+      passwordKey: "password"
+
   livenessProbe:
     httpGet:
       path: /api/reservations/health
@@ -208,6 +253,14 @@ reservation-service:
           - path: /api/reservations
             pathType: Prefix
 
+  extraEnv:
+    - name: NODE_ENV
+      value: "development"
+    - name: OTEL_EXPORTER_OTLP_ENDPOINT
+      value: "http://trubanb-jaeger-collector:4318"
+    - name: OTEL_SERVICE_NAME
+      value: "reservation-service"
+
 # Rating Service - Local Image Configuration
 rating-service:
   enabled: true
@@ -218,6 +271,18 @@ rating-service:
     pullPolicy: Never  # CRITICAL: Use local images, don't pull from registry
   service:
     port: 3000
+
+  # MongoDB configuration
+  mongodb:
+    host: "trubanb-mongodb"
+    port: "27017"
+    database: "ratingsdb"
+    username: "ratingservice"
+    existingSecret: "trubanb-mongodb"
+    secretKeys:
+      passwordKey: "mongodb-passwords"
+      rootPasswordKey: "mongodb-root-password"
+
   livenessProbe:
     httpGet:
       path: /api/ratings/health
@@ -244,6 +309,14 @@ rating-service:
         paths:
           - path: /api/ratings
             pathType: Prefix
+
+  extraEnv:
+    - name: NODE_ENV
+      value: "development"
+    - name: OTEL_EXPORTER_OTLP_ENDPOINT
+      value: "http://trubanb-jaeger-collector:4318"
+    - name: OTEL_SERVICE_NAME
+      value: "rating-service"
 
 # Notification Service - Local Image Configuration
 notification-service:
@@ -281,3 +354,158 @@ notification-service:
         paths:
           - path: /api/notifications
             pathType: Prefix
+
+  extraEnv:
+    - name: NODE_ENV
+      value: "development"
+    - name: OTEL_EXPORTER_OTLP_ENDPOINT
+      value: "http://trubanb-jaeger-collector:4318"
+    - name: OTEL_SERVICE_NAME
+      value: "notification-service"
+
+# ============================================================================
+# OBSERVABILITY STACK - Local Development
+# ============================================================================
+
+# Prometheus Stack (Prometheus, Grafana, Alertmanager)
+kube-prometheus-stack:
+  enabled: true
+
+  grafana:
+    enabled: true
+    adminPassword: "admin123"
+    service:
+      type: NodePort
+      nodePort: 30300
+    persistence:
+      enabled: false  # No persistence for local dev
+    resources:
+      limits:
+        cpu: 200m
+        memory: 256Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+
+    # Datasources for Loki and Jaeger
+    additionalDataSources:
+      - name: Loki
+        type: loki
+        url: http://trubanb-loki:3100
+        access: proxy
+        isDefault: false
+      - name: Jaeger
+        type: jaeger
+        url: http://trubanb-jaeger-query:16686
+        access: proxy
+        isDefault: false
+
+  prometheus:
+    prometheusSpec:
+      retention: 1d  # Short retention for local
+      storageSpec: {}  # No persistence for local
+      resources:
+        limits:
+          cpu: 500m
+          memory: 512Mi
+        requests:
+          cpu: 200m
+          memory: 256Mi
+
+  alertmanager:
+    enabled: false  # Disable alertmanager for local dev
+
+  nodeExporter:
+    enabled: true
+    resources:
+      limits:
+        cpu: 100m
+        memory: 64Mi
+      requests:
+        cpu: 50m
+        memory: 32Mi
+
+  kubeStateMetrics:
+    enabled: true
+
+# Loki - Log Aggregation
+loki:
+  enabled: true
+
+  deploymentMode: SingleBinary
+
+  loki:
+    auth_enabled: false
+    commonConfig:
+      replication_factor: 1
+    storage:
+      type: filesystem
+
+  singleBinary:
+    replicas: 1
+    persistence:
+      enabled: false  # No persistence for local
+    resources:
+      limits:
+        cpu: 200m
+        memory: 256Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+
+  read:
+    replicas: 0
+  write:
+    replicas: 0
+  backend:
+    replicas: 0
+  gateway:
+    enabled: false
+
+# Promtail - Log Collector
+promtail:
+  enabled: true
+
+  config:
+    clients:
+      - url: http://trubanb-loki:3100/loki/api/v1/push
+
+  resources:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+
+# Jaeger - Distributed Tracing
+jaeger:
+  enabled: true
+
+  provisionDataStore:
+    cassandra: false
+    elasticsearch: false
+    kafka: false
+
+  allInOne:
+    enabled: true
+    service:
+      type: NodePort
+      nodePort: 30686  # Jaeger UI
+    resources:
+      limits:
+        cpu: 200m
+        memory: 256Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+
+  storage:
+    type: memory
+
+  collector:
+    enabled: false
+  query:
+    enabled: false
+  agent:
+    enabled: false

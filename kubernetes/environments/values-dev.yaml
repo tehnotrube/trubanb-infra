@@ -143,6 +143,10 @@ user-service:
       value: "3000"
     - name: CORS_ORIGIN
       value: "*"
+    - name: OTEL_EXPORTER_OTLP_ENDPOINT
+      value: "http://trubanb-jaeger-collector:4318"
+    - name: OTEL_SERVICE_NAME
+      value: "user-service"
 
 accommodation-service:
   enabled: true
@@ -189,6 +193,10 @@ accommodation-service:
       value: "3000"
     - name: CORS_ORIGIN
       value: "*"
+    - name: OTEL_EXPORTER_OTLP_ENDPOINT
+      value: "http://trubanb-jaeger-collector:4318"
+    - name: OTEL_SERVICE_NAME
+      value: "accommodation-service"
 
 reservation-service:
   enabled: true
@@ -226,6 +234,17 @@ reservation-service:
           - path: /api/reservations
             pathType: Prefix
 
+  # Environment variables for the service
+  extraEnv:
+    - name: NODE_ENV
+      value: "development"
+    - name: PORT
+      value: "3000"
+    - name: OTEL_EXPORTER_OTLP_ENDPOINT
+      value: "http://trubanb-jaeger-collector:4318"
+    - name: OTEL_SERVICE_NAME
+      value: "reservation-service"
+
 rating-service:
   enabled: true
   replicaCount: 1
@@ -261,6 +280,17 @@ rating-service:
         paths:
           - path: /api/ratings
             pathType: Prefix
+
+  # Environment variables for the service
+  extraEnv:
+    - name: NODE_ENV
+      value: "development"
+    - name: PORT
+      value: "3000"
+    - name: OTEL_EXPORTER_OTLP_ENDPOINT
+      value: "http://trubanb-jaeger-collector:4318"
+    - name: OTEL_SERVICE_NAME
+      value: "rating-service"
 
 notification-service:
   enabled: true
@@ -304,3 +334,177 @@ notification-service:
       value: "development"
     - name: PORT
       value: "3000"
+    - name: OTEL_EXPORTER_OTLP_ENDPOINT
+      value: "http://trubanb-jaeger-collector:4318"
+    - name: OTEL_SERVICE_NAME
+      value: "notification-service"
+
+# ============================================================================
+# OBSERVABILITY STACK - Development Environment
+# ============================================================================
+
+# Prometheus Stack (Prometheus, Grafana, Alertmanager)
+kube-prometheus-stack:
+  enabled: true
+
+  grafana:
+    enabled: true
+    adminPassword: "dev-grafana-password"
+    service:
+      type: NodePort
+      nodePort: 30300
+    persistence:
+      enabled: true
+      size: 2Gi
+    resources:
+      limits:
+        cpu: 300m
+        memory: 384Mi
+      requests:
+        cpu: 150m
+        memory: 192Mi
+
+    # Datasources for Loki and Jaeger
+    additionalDataSources:
+      - name: Loki
+        type: loki
+        url: http://trubanb-loki:3100
+        access: proxy
+        isDefault: false
+      - name: Jaeger
+        type: jaeger
+        url: http://trubanb-jaeger-query:16686
+        access: proxy
+        isDefault: false
+
+  prometheus:
+    prometheusSpec:
+      retention: 7d
+      storageSpec:
+        volumeClaimTemplate:
+          spec:
+            accessModes: ["ReadWriteOnce"]
+            resources:
+              requests:
+                storage: 5Gi
+      resources:
+        limits:
+          cpu: 500m
+          memory: 512Mi
+        requests:
+          cpu: 250m
+          memory: 256Mi
+
+  alertmanager:
+    enabled: true
+    alertmanagerSpec:
+      storage:
+        volumeClaimTemplate:
+          spec:
+            accessModes: ["ReadWriteOnce"]
+            resources:
+              requests:
+                storage: 1Gi
+      resources:
+        limits:
+          cpu: 100m
+          memory: 128Mi
+        requests:
+          cpu: 50m
+          memory: 64Mi
+
+  nodeExporter:
+    enabled: true
+    resources:
+      limits:
+        cpu: 100m
+        memory: 64Mi
+      requests:
+        cpu: 50m
+        memory: 32Mi
+
+  kubeStateMetrics:
+    enabled: true
+
+# Loki - Log Aggregation
+loki:
+  enabled: true
+
+  deploymentMode: SingleBinary
+
+  loki:
+    auth_enabled: false
+    commonConfig:
+      replication_factor: 1
+    storage:
+      type: filesystem
+
+  singleBinary:
+    replicas: 1
+    persistence:
+      enabled: true
+      size: 5Gi
+    resources:
+      limits:
+        cpu: 300m
+        memory: 384Mi
+      requests:
+        cpu: 150m
+        memory: 192Mi
+
+  read:
+    replicas: 0
+  write:
+    replicas: 0
+  backend:
+    replicas: 0
+  gateway:
+    enabled: false
+
+# Promtail - Log Collector
+promtail:
+  enabled: true
+
+  config:
+    clients:
+      - url: http://trubanb-loki:3100/loki/api/v1/push
+
+  resources:
+    limits:
+      cpu: 150m
+      memory: 192Mi
+    requests:
+      cpu: 75m
+      memory: 96Mi
+
+# Jaeger - Distributed Tracing
+jaeger:
+  enabled: true
+
+  provisionDataStore:
+    cassandra: false
+    elasticsearch: false
+    kafka: false
+
+  allInOne:
+    enabled: true
+    service:
+      type: NodePort
+      nodePort: 30686
+    resources:
+      limits:
+        cpu: 300m
+        memory: 384Mi
+      requests:
+        cpu: 150m
+        memory: 192Mi
+
+  storage:
+    type: memory
+
+  collector:
+    enabled: false
+  query:
+    enabled: false
+  agent:
+    enabled: false

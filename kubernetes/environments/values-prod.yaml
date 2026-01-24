@@ -58,6 +58,28 @@ postgresql-accommodation:
     serviceMonitor:
       enabled: true
 
+postgresql-reservation:
+  enabled: true
+  auth:
+    password: ""
+    existingSecret: "reservation-db-secret"
+  primary:
+    persistence:
+      enabled: true
+      size: 15Gi
+      storageClass: ""
+    resources:
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+      requests:
+        cpu: 1000m
+        memory: 2Gi
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+
 mongodb:
   enabled: true
   architecture: replicaset
@@ -141,6 +163,10 @@ user-service:
       value: "3000"
     - name: CORS_ORIGIN
       value: "https://trubanb.com,https://www.trubanb.com"
+    - name: OTEL_EXPORTER_OTLP_ENDPOINT
+      value: "http://trubanb-jaeger-collector:4318"
+    - name: OTEL_SERVICE_NAME
+      value: "user-service"
 
 accommodation-service:
   enabled: true
@@ -185,10 +211,71 @@ accommodation-service:
         hosts:
           - api.trubanb.com
   extraEnv:
+    - name: NODE_ENV
+      value: "production"
+    - name: PORT
+      value: "3001"
     - name: STORAGE_BUCKET
       value: "trubanb-accommodation-images-prod"
     - name: STORAGE_REGION
       value: "us-east-1"
+    - name: OTEL_EXPORTER_OTLP_ENDPOINT
+      value: "http://trubanb-jaeger-collector:4318"
+    - name: OTEL_SERVICE_NAME
+      value: "accommodation-service"
+
+reservation-service:
+  enabled: true
+  replicaCount: 3
+  image:
+    repository: ghcr.io/tehnotrube/trubanb-reservation-service
+    tag: "latest"
+    pullPolicy: Always
+  service:
+    port: 3001
+  livenessProbe:
+    httpGet:
+      path: /api/reservations/health
+      port: 3001
+  readinessProbe:
+    httpGet:
+      path: /api/reservations/health
+      port: 3001
+  database:
+    existingSecret: "reservation-db-secret"
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 500m
+      memory: 512Mi
+  ingress:
+    enabled: true
+    jwtEnabled: true
+    annotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      konghq.com/strip-path: "false"
+      konghq.com/preserve-host: "true"
+    hosts:
+      - host: api.trubanb.com
+        paths:
+          - path: /api/reservations
+            pathType: Prefix
+    tls:
+      - secretName: trubanb-api-tls
+        hosts:
+          - api.trubanb.com
+
+  extraEnv:
+    - name: NODE_ENV
+      value: "production"
+    - name: PORT
+      value: "3001"
+    - name: OTEL_EXPORTER_OTLP_ENDPOINT
+      value: "http://trubanb-jaeger-collector:4318"
+    - name: OTEL_SERVICE_NAME
+      value: "reservation-service"
 
 rating-service:
   enabled: true
@@ -232,6 +319,16 @@ rating-service:
       - secretName: trubanb-api-tls
         hosts:
           - api.trubanb.com
+
+  extraEnv:
+    - name: NODE_ENV
+      value: "production"
+    - name: PORT
+      value: "3001"
+    - name: OTEL_EXPORTER_OTLP_ENDPOINT
+      value: "http://trubanb-jaeger-collector:4318"
+    - name: OTEL_SERVICE_NAME
+      value: "rating-service"
 
 notification-service:
   enabled: true
@@ -280,6 +377,10 @@ notification-service:
       value: "production"
     - name: PORT
       value: "3001"
+    - name: OTEL_EXPORTER_OTLP_ENDPOINT
+      value: "http://trubanb-jaeger-collector:4318"
+    - name: OTEL_SERVICE_NAME
+      value: "notification-service"
     # SMTP configuration should use external secrets in production
     # - name: SMTP_HOST
     #   valueFrom:
@@ -291,3 +392,275 @@ notification-service:
     #     secretKeyRef:
     #       name: notification-secrets
     #       key: smtp-port
+
+# ============================================================================
+# OBSERVABILITY STACK - Production Environment
+# ============================================================================
+
+# Prometheus Stack (Prometheus, Grafana, Alertmanager)
+kube-prometheus-stack:
+  enabled: true
+
+  grafana:
+    enabled: true
+    adminPassword: ""  # Use external secret in production
+    adminUser: admin
+    ingress:
+      enabled: true
+      annotations:
+        cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      hosts:
+        - grafana.trubanb.com
+      tls:
+        - secretName: grafana-tls
+          hosts:
+            - grafana.trubanb.com
+    persistence:
+      enabled: true
+      size: 10Gi
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+      requests:
+        cpu: 500m
+        memory: 512Mi
+
+    # Datasources for Loki and Jaeger
+    additionalDataSources:
+      - name: Loki
+        type: loki
+        url: http://trubanb-loki:3100
+        access: proxy
+        isDefault: false
+      - name: Jaeger
+        type: jaeger
+        url: http://trubanb-jaeger-query:16686
+        access: proxy
+        isDefault: false
+
+  prometheus:
+    prometheusSpec:
+      retention: 30d
+      storageSpec:
+        volumeClaimTemplate:
+          spec:
+            accessModes: ["ReadWriteOnce"]
+            resources:
+              requests:
+                storage: 50Gi
+      resources:
+        limits:
+          cpu: 2000m
+          memory: 4Gi
+        requests:
+          cpu: 1000m
+          memory: 2Gi
+      # Enable remote write for long-term storage (optional)
+      # remoteWrite:
+      #   - url: https://prometheus-remote-write-endpoint
+
+  alertmanager:
+    enabled: true
+    alertmanagerSpec:
+      storage:
+        volumeClaimTemplate:
+          spec:
+            accessModes: ["ReadWriteOnce"]
+            resources:
+              requests:
+                storage: 5Gi
+      resources:
+        limits:
+          cpu: 500m
+          memory: 512Mi
+        requests:
+          cpu: 250m
+          memory: 256Mi
+    # Configure alerting routes in production
+    # config:
+    #   global:
+    #     slack_api_url: ''
+    #   route:
+    #     receiver: 'slack-notifications'
+    #   receivers:
+    #     - name: 'slack-notifications'
+    #       slack_configs:
+    #         - channel: '#alerts'
+
+  nodeExporter:
+    enabled: true
+    resources:
+      limits:
+        cpu: 200m
+        memory: 128Mi
+      requests:
+        cpu: 100m
+        memory: 64Mi
+
+  kubeStateMetrics:
+    enabled: true
+
+# Loki - Log Aggregation (Production with scalable deployment)
+loki:
+  enabled: true
+
+  deploymentMode: SimpleScalable
+
+  loki:
+    auth_enabled: false
+    commonConfig:
+      replication_factor: 2
+    storage:
+      type: filesystem
+      # For production, consider using object storage (S3, GCS, etc.)
+      # type: s3
+      # bucketNames:
+      #   chunks: trubanb-loki-chunks
+      #   ruler: trubanb-loki-ruler
+      #   admin: trubanb-loki-admin
+      # s3:
+      #   region: us-east-1
+
+  # Simple Scalable mode
+  read:
+    replicas: 2
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+      requests:
+        cpu: 500m
+        memory: 512Mi
+  write:
+    replicas: 2
+    persistence:
+      enabled: true
+      size: 20Gi
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+      requests:
+        cpu: 500m
+        memory: 512Mi
+  backend:
+    replicas: 2
+    persistence:
+      enabled: true
+      size: 20Gi
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+      requests:
+        cpu: 500m
+        memory: 512Mi
+
+  singleBinary:
+    replicas: 0
+
+  gateway:
+    enabled: true
+    replicas: 2
+    resources:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 250m
+        memory: 256Mi
+
+# Promtail - Log Collector
+promtail:
+  enabled: true
+
+  config:
+    clients:
+      - url: http://trubanb-loki-gateway:3100/loki/api/v1/push
+
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+
+# Jaeger - Distributed Tracing (Production with Elasticsearch backend)
+jaeger:
+  enabled: true
+
+  provisionDataStore:
+    cassandra: false
+    elasticsearch: true  # Use Elasticsearch for production
+    kafka: false
+
+  # Elasticsearch configuration
+  elasticsearch:
+    replicas: 3
+    minimumMasterNodes: 2
+    persistence:
+      enabled: true
+    volumeClaimTemplate:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 30Gi
+    resources:
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+      requests:
+        cpu: 1000m
+        memory: 2Gi
+
+  allInOne:
+    enabled: false  # Use separate components in production
+
+  collector:
+    enabled: true
+    replicaCount: 2
+    extraEnv:
+      - name: COLLECTOR_OTLP_ENABLED
+        value: "true"
+    service:
+      otlp:
+        grpc:
+          port: 4317
+        http:
+          port: 4318
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+      requests:
+        cpu: 500m
+        memory: 512Mi
+
+  query:
+    enabled: true
+    replicaCount: 2
+    ingress:
+      enabled: true
+      annotations:
+        cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      hosts:
+        - jaeger.trubanb.com
+      tls:
+        - secretName: jaeger-tls
+          hosts:
+            - jaeger.trubanb.com
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+      requests:
+        cpu: 500m
+        memory: 512Mi
+
+  agent:
+    enabled: false  # Using OTLP directly from services
+
+  storage:
+    type: elasticsearch
