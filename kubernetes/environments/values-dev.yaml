@@ -82,6 +82,24 @@ mongodb:
       cpu: 100m
       memory: 128Mi
 
+minio:
+  enabled: true
+  mode: standalone
+  rootUser: "admin"
+  rootPassword: "dev-minio-password"
+  replicas: 1
+  persistence:
+    enabled: true
+    size: 5Gi
+  buckets:
+    - name: accommodations
+      policy: public
+      purge: false
+  resources:
+    requests:
+      cpu: 150m
+      memory: 192Mi
+
 user-service:
   enabled: true
   replicaCount: 1
@@ -157,6 +175,18 @@ accommodation-service:
     pullPolicy: IfNotPresent
   service:
     port: 3000
+
+  # MinIO configuration
+  minio:
+    host: "trubanb-minio"
+    port: "9000"
+    useSSL: "false"
+    bucket: "accommodations"
+    existingSecret: "trubanb-minio"
+    secretKeys:
+      rootUserKey: "rootUser"
+      rootPasswordKey: "rootPassword"
+
   livenessProbe:
     httpGet:
       path: /api/accommodations/health

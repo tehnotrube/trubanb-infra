@@ -70,3 +70,34 @@ Database secret name - use provided value or construct from release name
 {{- printf "%s-postgresql-accommodation" .Release.Name }}
 {{- end }}
 {{- end }}
+
+{{/*
+MinIO host - use provided value or construct from release name
+*/}}
+{{- define "accommodation-service.minioHost" -}}
+{{- if .Values.minio.host }}
+{{- .Values.minio.host }}
+{{- else }}
+{{- printf "%s-minio" .Release.Name }}
+{{- end }}
+{{- end }}
+
+{{/*
+MinIO secret name - use provided value or construct from release name
+*/}}
+{{- define "accommodation-service.minioSecret" -}}
+{{- if .Values.minio.existingSecret }}
+{{- .Values.minio.existingSecret }}
+{{- else }}
+{{- printf "%s-minio" .Release.Name }}
+{{- end }}
+{{- end }}
+
+{{/*
+MinIO public URL - construct from host and bucket
+*/}}
+{{- define "accommodation-service.minioPublicUrl" -}}
+{{- $protocol := ternary "https" "http" (eq .Values.minio.useSSL "true") }}
+{{- $host := include "accommodation-service.minioHost" . }}
+{{- printf "%s://%s:%s/%s" $protocol $host .Values.minio.port .Values.minio.bucket }}
+{{- end }}

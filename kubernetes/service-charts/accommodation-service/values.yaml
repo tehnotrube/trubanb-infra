@@ -23,6 +23,18 @@ database:
   secretKeys:
     passwordKey: "password"
 
+# MinIO/S3 Storage configuration
+minio:
+  host: ""  # Will be templated to {{ .Release.Name }}-minio
+  port: "9000"
+  useSSL: "false"
+  bucket: "accommodations"
+  # Reference to external secret (created by MinIO chart)
+  existingSecret: ""  # Will be templated to {{ .Release.Name }}-minio
+  secretKeys:
+    rootUserKey: "rootUser"
+    rootPasswordKey: "rootPassword"
+
 resources:
   limits:
     cpu: 500m
