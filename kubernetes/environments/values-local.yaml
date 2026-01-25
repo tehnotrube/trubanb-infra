@@ -3,12 +3,38 @@
 
 kong:
   enabled: true
+
+  # Single replica for local
+  replicaCount: 1
+
   proxy:
     type: NodePort
     http:
       nodePort: 30080
     tls:
       nodePort: 30443
+
+  # Disable Kong Manager (Enterprise-only feature, not useful in OSS)
+  manager:
+    enabled: false
+
+  # Resource limits for local environment
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+  ingressController:
+    resources:
+      limits:
+        cpu: 200m
+        memory: 256Mi
+      requests:
+        cpu: 50m
+        memory: 64Mi
 
   # JWT Authentication Configuration (shared across all services)
   jwt:
@@ -77,11 +103,11 @@ mongodb:
     size: 500Mi
   resources:
     limits:
-      cpu: 200m
-      memory: 256Mi
+      cpu: 500m
+      memory: 512Mi
     requests:
       cpu: 100m
-      memory: 128Mi
+      memory: 256Mi
 
 minio:
   enabled: true
@@ -445,14 +471,7 @@ kube-prometheus-stack:
     enabled: false  # Disable alertmanager for local dev
 
   nodeExporter:
-    enabled: true
-    resources:
-      limits:
-        cpu: 100m
-        memory: 64Mi
-      requests:
-        cpu: 50m
-        memory: 32Mi
+    enabled: false
 
   kubeStateMetrics:
     enabled: true
@@ -467,8 +486,14 @@ loki:
     auth_enabled: false
     commonConfig:
       replication_factor: 1
+      path_prefix: /var/loki
     storage:
       type: filesystem
+    rulerConfig:
+      storage:
+        type: local
+        local:
+          directory: /var/loki/rules
 
   singleBinary:
     replicas: 1
@@ -481,6 +506,13 @@ loki:
       requests:
         cpu: 100m
         memory: 128Mi
+    # Provide writable directory since persistence is disabled
+    extraVolumes:
+      - name: data
+        emptyDir: {}
+    extraVolumeMounts:
+      - name: data
+        mountPath: /var/loki
 
   read:
     replicas: 0
@@ -489,6 +521,12 @@ loki:
   backend:
     replicas: 0
   gateway:
+    enabled: false
+
+  # Disable memory-hungry caches for local dev
+  chunksCache:
+    enabled: false
+  resultsCache:
     enabled: false
 
 # Promtail - Log Collector
@@ -520,7 +558,7 @@ jaeger:
     enabled: true
     service:
       type: NodePort
-      nodePort: 30686  # Jaeger UI
+      nodePort: 30686
     resources:
       limits:
         cpu: 200m
@@ -534,7 +572,9 @@ jaeger:
 
   collector:
     enabled: false
+
   query:
     enabled: false
+
   agent:
     enabled: false

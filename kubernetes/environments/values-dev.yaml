@@ -9,6 +9,10 @@ kong:
     tls:
       nodePort: 30443
 
+  # Disable Kong Manager (Enterprise-only feature, not useful in OSS)
+  manager:
+    enabled: false
+
   # JWT Authentication Configuration (shared across all services)
   jwt:
     enabled: true
@@ -76,11 +80,11 @@ mongodb:
     size: 500Mi
   resources:
     limits:
-      cpu: 200m
-      memory: 256Mi
+      cpu: 500m
+      memory: 512Mi
     requests:
       cpu: 100m
-      memory: 128Mi
+      memory: 256Mi
 
 minio:
   enabled: true
@@ -443,15 +447,9 @@ kube-prometheus-stack:
           cpu: 50m
           memory: 64Mi
 
+  # Disabled - doesn't work on Docker Desktop (host mount issues)
   nodeExporter:
-    enabled: true
-    resources:
-      limits:
-        cpu: 100m
-        memory: 64Mi
-      requests:
-        cpu: 50m
-        memory: 32Mi
+    enabled: false
 
   kubeStateMetrics:
     enabled: true
@@ -466,8 +464,14 @@ loki:
     auth_enabled: false
     commonConfig:
       replication_factor: 1
+      path_prefix: /var/loki
     storage:
       type: filesystem
+    rulerConfig:
+      storage:
+        type: local
+        local:
+          directory: /var/loki/rules
 
   singleBinary:
     replicas: 1
@@ -481,6 +485,12 @@ loki:
       requests:
         cpu: 150m
         memory: 192Mi
+    extraVolumes:
+      - name: tmp
+        emptyDir: {}
+    extraVolumeMounts:
+      - name: tmp
+        mountPath: /tmp
 
   read:
     replicas: 0
