@@ -141,6 +141,34 @@ mongodb:
     enabled: false  # Enable for monitoring
 
 # ============================================================================
+# MINIO - Object Storage
+# ============================================================================
+
+minio:
+  enabled: false  # Enable in environment-specific values
+
+  # Official MinIO chart configuration
+  rootUser: admin
+  rootPassword: ""  # Set via secret or --set flag
+
+  replicas: 1  # Standalone mode
+
+  persistence:
+    enabled: true
+    size: 10Gi
+    storageClass: ""  # Use default storage class
+
+  buckets:
+    - name: accommodations
+      policy: public
+      purge: false
+
+  resources:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+
+# ============================================================================
 # MICROSERVICES
 # ============================================================================
 

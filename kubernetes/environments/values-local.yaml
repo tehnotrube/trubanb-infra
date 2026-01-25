@@ -83,6 +83,24 @@ mongodb:
       cpu: 100m
       memory: 128Mi
 
+minio:
+  enabled: true
+  mode: standalone
+  rootUser: "admin"
+  rootPassword: "dev-minio-password"
+  replicas: 1
+  persistence:
+    enabled: false  # No persistence for local dev
+    size: 2Gi
+  buckets:
+    - name: accommodations
+      policy: public
+      purge: false
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
 # User Service - Local Image Configuration
 user-service:
   enabled: true
@@ -168,6 +186,17 @@ accommodation-service:
     existingSecret: "trubanb-postgresql-accommodation"
     secretKeys:
       passwordKey: "password"
+
+  # MinIO configuration
+  minio:
+    host: "trubanb-minio"
+    port: "9000"
+    useSSL: "false"
+    bucket: "accommodations"
+    existingSecret: "trubanb-minio"
+    secretKeys:
+      rootUserKey: "rootUser"
+      rootPasswordKey: "rootPassword"
 
   livenessProbe:
     httpGet:
