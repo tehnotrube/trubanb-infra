@@ -34,7 +34,7 @@ services:
             - trubanb-network
         depends_on:
             - trubanb-user-service
-            - trubanb-accomodation-service
+            - trubanb-accommodation-service
             - trubanb-reservation-service
             - trubanb-rating-service
             - trubanb-notification-service
@@ -136,19 +136,42 @@ services:
         networks:
             - trubanb-network
 
-    trubanb-accomodation-service:
+    # RabbitMQ (message broker)
+    rabbitmq:
+        image: rabbitmq:management
+        restart: always
+        ports:
+            - "5672:5672"   # AMQP protocol
+            - "15672:15672" # Management UI
+        environment:
+            RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
+            RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-guest}
+        volumes:
+            - rabbitmq-data:/var/lib/rabbitmq
+        healthcheck:
+            test: ["CMD", "rabbitmqctl", "status"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+        networks:
+            - trubanb-network
+            
+    trubanb-accommodation-service:
         restart: always
         build:
-            context: ${ACCOMODATION_SERVICE_PATH}
+            context: ${ACCOMMODATION_SERVICE_PATH}
             dockerfile: Dockerfile
         ports:
-            - "${ACCOMODATION_SERVICE_PORT}:3000"
+            - "${ACCOMMODATION_SERVICE_PORT}:3000"
+            - "${ACCOMMODATION_GRPC_PORT:-50051}:50051"
         depends_on:
             postgresql-accommodation:
                 condition: service_healthy
             minio:
                 condition: service_healthy
             jaeger:
+                condition: service_healthy
+            rabbitmq:
                 condition: service_healthy
         environment:
             DB_HOST: postgresql-accommodation
@@ -163,10 +186,12 @@ services:
             MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin123}
             MINIO_BUCKET: accommodations
             STORAGE_PUBLIC_URL: http://localhost:9000/accommodations
+            GRPC_PORT: 50051
             OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
             OTEL_SERVICE_NAME: accommodation-service
             NODE_ENV: ${NODE_ENV:-development}
             PORT: 3000
+            RABBITMQ_URL: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASSWORD:-guest}@rabbitmq:5672
             CORS_ORIGIN: ${CORS_ORIGIN:-*}
         networks:
             - trubanb-network
@@ -205,7 +230,11 @@ services:
         depends_on:
             postgresql-reservation:
                 condition: service_healthy
+            trubanb-accommodation-service:
+                condition: service_started
             jaeger:
+                condition: service_healthy
+            rabbitmq:
                 condition: service_healthy
         environment:
             DB_HOST: postgresql-reservation
@@ -213,9 +242,11 @@ services:
             DB_NAME: reservationdb
             DB_USER: reservationservice
             DB_PASSWORD: ${POSTGRES_RESERVATION_PASSWORD:-reservationpass123}
+            ACCOMMODATION_GRPC_URL: trubanb-accommodation-service:50051
             OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
             OTEL_SERVICE_NAME: reservation-service
             NODE_ENV: ${NODE_ENV:-development}
+            RABBITMQ_URL: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASSWORD:-guest}@rabbitmq:5672
             PORT: 3000
             CORS_ORIGIN: ${CORS_ORIGIN:-*}
         networks:
@@ -453,3 +484,4 @@ volumes:
     loki-data:
     grafana-data:
     prometheus-data:
+    rabbitmq-data:
