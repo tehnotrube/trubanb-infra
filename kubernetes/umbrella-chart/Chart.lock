@@ -18,8 +18,8 @@ dependencies:
   repository: https://charts.min.io/
   version: 5.3.0
 - name: rabbitmq
-  repository: https://charts.bitnami.com/bitnami
-  version: 16.0.14
+  repository: oci://registry-1.docker.io/cloudpirates
+  version: 0.15.3
 - name: user-service
   repository: file://../service-charts/user-service
   version: 0.1.0
@@ -47,5 +47,5 @@ dependencies:
 - name: jaeger
   repository: https://jaegertracing.github.io/helm-charts
   version: 3.4.1
-digest: sha256:c0e281f0c9f94ec94720430a964602dfdc83b994968667bf40762b88b6de3ca4
-generated: "2026-01-30T19:33:41.4343866+01:00"
+digest: sha256:d23f6813b6838a28e9620b05179cdb412fb73f8dd30db6d8dc6629fd61a2d69d
+generated: "2026-01-30T20:47:56.4364918+01:00"

@@ -107,6 +107,7 @@ minio:
 rabbitmq:
   enabled: true
   auth:
+    enabled: true
     username: "trubanb"
     password: "dev-rabbitmq-password"
   persistence:

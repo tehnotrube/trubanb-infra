@@ -174,11 +174,13 @@ minio:
 
 rabbitmq:
   enabled: false  # Enable in environment-specific values
-
+  
   auth:
-    username: trubanb
-    password: ""  # Set via secret or --set flag
-    existingPasswordSecret: ""  # Optional: reference existing secret
+    enabled: true
+    username: "trubanb"
+    password: "" # Set via secret or --set flag
+    existingSecret: "" # Optional: reference existing secret
+    erlangCookie: ""
 
   persistence:
     enabled: true
