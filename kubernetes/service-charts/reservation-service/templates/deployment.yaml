@@ -40,6 +40,18 @@ spec:
             secretKeyRef:
               name: {{ include "reservation-service.databaseSecret" . }}
               key: {{ .Values.database.secretKeys.passwordKey }}
+        # RabbitMQ Configuration
+        - name: RABBITMQ_HOST
+          value: {{ include "reservation-service.rabbitmqHost" . | quote }}
+        - name: RABBITMQ_PORT
+          value: {{ .Values.rabbitmq.port | quote }}
+        - name: RABBITMQ_USER
+          value: {{ .Values.rabbitmq.username | default "trubanb" | quote }}
+        - name: RABBITMQ_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "reservation-service.rabbitmqSecret" . }}
+              key: {{ .Values.rabbitmq.secretKeys.passwordKey }}
         {{- with .Values.extraEnv }}
         {{- toYaml . | nindent 8 }}
         {{- end }}

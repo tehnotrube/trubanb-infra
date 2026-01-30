@@ -45,6 +45,12 @@ dependencies:
     repository: https://charts.min.io/
     condition: minio.enabled
 
+  # RabbitMQ for message broker
+  - name: rabbitmq
+    version: "16.0.14"
+    repository: https://charts.bitnami.com/bitnami
+    condition: rabbitmq.enabled
+
   # User Service
   - name: user-service
     version: "0.1.0"

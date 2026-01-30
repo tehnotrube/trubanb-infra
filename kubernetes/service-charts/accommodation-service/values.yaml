@@ -35,6 +35,16 @@ minio:
     rootUserKey: "rootUser"
     rootPasswordKey: "rootPassword"
 
+# RabbitMQ configuration
+rabbitmq:
+  host: ""  # Will be templated to {{ .Release.Name }}-rabbitmq
+  port: "5672"
+  username: "trubanb"
+  # Reference to external secret (created by RabbitMQ chart)
+  existingSecret: ""  # Will be templated to {{ .Release.Name }}-rabbitmq
+  secretKeys:
+    passwordKey: "rabbitmq-password"
+
 resources:
   limits:
     cpu: 500m

@@ -127,6 +127,21 @@ minio:
       cpu: 100m
       memory: 128Mi
 
+rabbitmq:
+  enabled: true
+  auth:
+    username: "trubanb"
+    password: "dev-rabbitmq-password"
+  persistence:
+    enabled: false  # No persistence for local dev
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
 # User Service - Local Image Configuration
 user-service:
   enabled: true
@@ -224,6 +239,15 @@ accommodation-service:
       rootUserKey: "rootUser"
       rootPasswordKey: "rootPassword"
 
+  # RabbitMQ configuration
+  rabbitmq:
+    host: "trubanb-rabbitmq"
+    port: "5672"
+    username: "trubanb"
+    existingSecret: "trubanb-rabbitmq"
+    secretKeys:
+      passwordKey: "rabbitmq-password"
+
   livenessProbe:
     httpGet:
       path: /api/accommodations/health
@@ -280,6 +304,15 @@ reservation-service:
     existingSecret: "trubanb-postgresql-reservation"
     secretKeys:
       passwordKey: "password"
+
+  # RabbitMQ configuration
+  rabbitmq:
+    host: "trubanb-rabbitmq"
+    port: "5672"
+    username: "trubanb"
+    existingSecret: "trubanb-rabbitmq"
+    secretKeys:
+      passwordKey: "rabbitmq-password"
 
   livenessProbe:
     httpGet:

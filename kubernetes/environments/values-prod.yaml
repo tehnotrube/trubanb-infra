@@ -104,6 +104,29 @@ mongodb:
     serviceMonitor:
       enabled: true
 
+rabbitmq:
+  enabled: true
+  auth:
+    username: "trubanb"
+    password: ""  # Use external secret in production
+    existingPasswordSecret: "rabbitmq-secret"
+  replicaCount: 3
+  persistence:
+    enabled: true
+    size: 10Gi
+    storageClass: ""
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 500m
+      memory: 512Mi
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+
 user-service:
   enabled: true
   replicaCount: 3
@@ -187,6 +210,8 @@ accommodation-service:
       port: 3001
   database:
     existingSecret: "accommodation-db-secret"
+  rabbitmq:
+    existingSecret: "rabbitmq-secret"
   resources:
     limits:
       cpu: 1000m
@@ -243,6 +268,8 @@ reservation-service:
       port: 3001
   database:
     existingSecret: "reservation-db-secret"
+  rabbitmq:
+    existingSecret: "rabbitmq-secret"
   resources:
     limits:
       cpu: 1000m

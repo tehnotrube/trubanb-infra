@@ -169,6 +169,34 @@ minio:
       memory: 256Mi
 
 # ============================================================================
+# RABBITMQ - Message Broker
+# ============================================================================
+
+rabbitmq:
+  enabled: false  # Enable in environment-specific values
+
+  auth:
+    username: trubanb
+    password: ""  # Set via secret or --set flag
+    existingPasswordSecret: ""  # Optional: reference existing secret
+
+  persistence:
+    enabled: true
+    size: 2Gi
+    storageClass: ""  # Use default storage class
+
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+
+  metrics:
+    enabled: false  # Enable for monitoring
+
+# ============================================================================
 # MICROSERVICES
 # ============================================================================
 
@@ -229,6 +257,12 @@ accommodation-service:
     name: "accommodationdb"
     existingSecret: ""  # Defaults to {{ .Release.Name }}-postgresql-accommodation
 
+  # RabbitMQ configuration
+  rabbitmq:
+    host: ""  # Defaults to {{ .Release.Name }}-rabbitmq
+    port: "5672"
+    existingSecret: ""  # Defaults to {{ .Release.Name }}-rabbitmq
+
   service:
     port: 8080
 
@@ -268,6 +302,12 @@ reservation-service:
     port: "5432"
     name: "reservationdb"
     existingSecret: ""  # Defaults to {{ .Release.Name }}-postgresql-reservation
+
+  # RabbitMQ configuration
+  rabbitmq:
+    host: ""  # Defaults to {{ .Release.Name }}-rabbitmq
+    port: "5672"
+    existingSecret: ""  # Defaults to {{ .Release.Name }}-rabbitmq
 
   service:
     port: 8080
