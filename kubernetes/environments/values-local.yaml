@@ -197,16 +197,18 @@ user-service:
           - path: /api/users
             pathType: Prefix
 
+  # OpenTelemetry / Observability
+  observability:
+    enabled: true
+    otlpEndpoint: "http://trubanb-jaeger-collector:4318"
+    serviceName: "user-service"
+
   # Environment variables for the service
   extraEnv:
     - name: NODE_ENV
       value: "development"
     - name: CORS_ORIGIN
       value: "*"
-    - name: OTEL_EXPORTER_OTLP_ENDPOINT
-      value: "http://trubanb-jaeger-collector:4318"
-    - name: OTEL_SERVICE_NAME
-      value: "user-service"
 
 # Accommodation Service - Local Image Configuration
 accommodation-service:
@@ -277,16 +279,18 @@ accommodation-service:
           - path: /api/accommodations
             pathType: Prefix
 
+  # OpenTelemetry / Observability
+  observability:
+    enabled: true
+    otlpEndpoint: "http://trubanb-jaeger-collector:4318"
+    serviceName: "accommodation-service"
+
   extraEnv:
     - name: NODE_ENV
       value: "development"
-      # TODO: Services should be adapted to use rabbitmq HOST, PASS, PORT instead.
+    # TODO: Services should be adapted to use rabbitmq HOST, PASS, PORT instead.
     - name: RABBITMQ_URL
       value: "amqp://trubanb:dev-rabbitmq-password@trubanb-rabbitmq:5672"
-    - name: OTEL_EXPORTER_OTLP_ENDPOINT
-      value: "http://trubanb-jaeger-collector:4318"
-    - name: OTEL_SERVICE_NAME
-      value: "accommodation-service"
 
 # Reservation Service - Local Image Configuration
 reservation-service:
@@ -345,16 +349,18 @@ reservation-service:
           - path: /api/reservations
             pathType: Prefix
 
+  # OpenTelemetry / Observability
+  observability:
+    enabled: true
+    otlpEndpoint: "http://trubanb-jaeger-collector:4318"
+    serviceName: "reservation-service"
+
   extraEnv:
     - name: NODE_ENV
       value: "development"
-      # TODO: Services should be adapted to use rabbitmq HOST, PASS, PORT instead.
+    # TODO: Services should be adapted to use rabbitmq HOST, PASS, PORT instead.
     - name: RABBITMQ_URL
       value: "amqp://trubanb:dev-rabbitmq-password@trubanb-rabbitmq:5672"
-    - name: OTEL_EXPORTER_OTLP_ENDPOINT
-      value: "http://trubanb-jaeger-collector:4318"
-    - name: OTEL_SERVICE_NAME
-      value: "reservation-service"
 
 # Rating Service - Local Image Configuration
 rating-service:
@@ -405,13 +411,15 @@ rating-service:
           - path: /api/ratings
             pathType: Prefix
 
+  # OpenTelemetry / Observability
+  observability:
+    enabled: true
+    otlpEndpoint: "http://trubanb-jaeger-collector:4318"
+    serviceName: "rating-service"
+
   extraEnv:
     - name: NODE_ENV
       value: "development"
-    - name: OTEL_EXPORTER_OTLP_ENDPOINT
-      value: "http://trubanb-jaeger-collector:4318"
-    - name: OTEL_SERVICE_NAME
-      value: "rating-service"
 
 # Notification Service - Local Image Configuration
 notification-service:
@@ -450,13 +458,15 @@ notification-service:
           - path: /api/notifications
             pathType: Prefix
 
+  # OpenTelemetry / Observability
+  observability:
+    enabled: true
+    otlpEndpoint: "http://trubanb-jaeger-collector:4318"
+    serviceName: "notification-service"
+
   extraEnv:
     - name: NODE_ENV
       value: "development"
-    - name: OTEL_EXPORTER_OTLP_ENDPOINT
-      value: "http://trubanb-jaeger-collector:4318"
-    - name: OTEL_SERVICE_NAME
-      value: "notification-service"
 
 # ============================================================================
 # OBSERVABILITY STACK - Local Development

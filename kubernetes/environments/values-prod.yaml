@@ -178,6 +178,12 @@ user-service:
         hosts:
           - api.trubanb.com
 
+  # OpenTelemetry / Observability
+  observability:
+    enabled: true
+    otlpEndpoint: "http://trubanb-jaeger-collector:4318"
+    serviceName: "user-service"
+
   # Production environment variables
   extraEnv:
     - name: NODE_ENV
@@ -186,10 +192,6 @@ user-service:
       value: "3000"
     - name: CORS_ORIGIN
       value: "https://trubanb.com,https://www.trubanb.com"
-    - name: OTEL_EXPORTER_OTLP_ENDPOINT
-      value: "http://trubanb-jaeger-collector:4318"
-    - name: OTEL_SERVICE_NAME
-      value: "user-service"
 
 accommodation-service:
   enabled: true
@@ -235,6 +237,12 @@ accommodation-service:
       - secretName: trubanb-api-tls
         hosts:
           - api.trubanb.com
+  # OpenTelemetry / Observability
+  observability:
+    enabled: true
+    otlpEndpoint: "http://trubanb-jaeger-collector:4318"
+    serviceName: "accommodation-service"
+
   extraEnv:
     - name: NODE_ENV
       value: "production"
@@ -244,10 +252,6 @@ accommodation-service:
       value: "trubanb-accommodation-images-prod"
     - name: STORAGE_REGION
       value: "us-east-1"
-    - name: OTEL_EXPORTER_OTLP_ENDPOINT
-      value: "http://trubanb-jaeger-collector:4318"
-    - name: OTEL_SERVICE_NAME
-      value: "accommodation-service"
 
 reservation-service:
   enabled: true
@@ -294,15 +298,17 @@ reservation-service:
         hosts:
           - api.trubanb.com
 
+  # OpenTelemetry / Observability
+  observability:
+    enabled: true
+    otlpEndpoint: "http://trubanb-jaeger-collector:4318"
+    serviceName: "reservation-service"
+
   extraEnv:
     - name: NODE_ENV
       value: "production"
     - name: PORT
       value: "3001"
-    - name: OTEL_EXPORTER_OTLP_ENDPOINT
-      value: "http://trubanb-jaeger-collector:4318"
-    - name: OTEL_SERVICE_NAME
-      value: "reservation-service"
 
 rating-service:
   enabled: true
@@ -347,15 +353,17 @@ rating-service:
         hosts:
           - api.trubanb.com
 
+  # OpenTelemetry / Observability
+  observability:
+    enabled: true
+    otlpEndpoint: "http://trubanb-jaeger-collector:4318"
+    serviceName: "rating-service"
+
   extraEnv:
     - name: NODE_ENV
       value: "production"
     - name: PORT
       value: "3001"
-    - name: OTEL_EXPORTER_OTLP_ENDPOINT
-      value: "http://trubanb-jaeger-collector:4318"
-    - name: OTEL_SERVICE_NAME
-      value: "rating-service"
 
 notification-service:
   enabled: true
@@ -398,16 +406,18 @@ notification-service:
         hosts:
           - api.trubanb.com
 
+  # OpenTelemetry / Observability
+  observability:
+    enabled: true
+    otlpEndpoint: "http://trubanb-jaeger-collector:4318"
+    serviceName: "notification-service"
+
   # Production environment variables
   extraEnv:
     - name: NODE_ENV
       value: "production"
     - name: PORT
       value: "3001"
-    - name: OTEL_EXPORTER_OTLP_ENDPOINT
-      value: "http://trubanb-jaeger-collector:4318"
-    - name: OTEL_SERVICE_NAME
-      value: "notification-service"
     # SMTP configuration should use external secrets in production
     # - name: SMTP_HOST
     #   valueFrom:

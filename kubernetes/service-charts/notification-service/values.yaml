@@ -54,6 +54,12 @@ ingress:
         - path: /api/notifications
           pathType: Prefix
 
+# OpenTelemetry / Observability configuration
+observability:
+  enabled: false
+  otlpEndpoint: ""  # e.g., http://jaeger-collector:4318
+  serviceName: ""   # Defaults to chart name if empty
+
 # Additional environment variables
 extraEnv: []
 # - name: LOG_LEVEL

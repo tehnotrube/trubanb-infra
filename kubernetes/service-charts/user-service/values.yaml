@@ -69,6 +69,12 @@ ingress:
 jwt:
   secret: "dev-jwt-secret-change-in-production"  # Override in production with strong random secret
 
+# OpenTelemetry / Observability configuration
+observability:
+  enabled: false
+  otlpEndpoint: ""  # e.g., http://jaeger-collector:4318
+  serviceName: ""   # Defaults to chart name if empty
+
 # Additional environment variables
 extraEnv: []
 # - name: LOG_LEVEL

@@ -43,6 +43,13 @@ spec:
               key: {{ .Values.mongodb.secretKeys.passwordKey }}
         - name: MONGODB_AUTH_DATABASE
           value: {{ .Values.mongodb.authDatabase | quote }}
+        {{- if .Values.observability.enabled }}
+        # OpenTelemetry Configuration
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: {{ .Values.observability.otlpEndpoint | quote }}
+        - name: OTEL_SERVICE_NAME
+          value: {{ .Values.observability.serviceName | default .Chart.Name | quote }}
+        {{- end }}
         {{- with .Values.extraEnv }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
