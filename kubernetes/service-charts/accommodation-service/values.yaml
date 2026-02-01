@@ -23,6 +23,28 @@ database:
   secretKeys:
     passwordKey: "password"
 
+# MinIO/S3 Storage configuration
+minio:
+  host: ""  # Will be templated to {{ .Release.Name }}-minio
+  port: "9000"
+  useSSL: "false"
+  bucket: "accommodations"
+  # Reference to external secret (created by MinIO chart)
+  existingSecret: ""  # Will be templated to {{ .Release.Name }}-minio
+  secretKeys:
+    rootUserKey: "rootUser"
+    rootPasswordKey: "rootPassword"
+
+# RabbitMQ configuration
+rabbitmq:
+  host: ""  # Will be templated to {{ .Release.Name }}-rabbitmq
+  port: "5672"
+  username: "trubanb"
+  # Reference to external secret (created by RabbitMQ chart)
+  existingSecret: ""  # Will be templated to {{ .Release.Name }}-rabbitmq
+  secretKeys:
+    passwordKey: "rabbitmq-password"
+
 resources:
   limits:
     cpu: 500m
@@ -64,6 +86,12 @@ ingress:
       paths:
         - path: /api/accommodations
           pathType: Prefix
+
+# OpenTelemetry / Observability configuration
+observability:
+  enabled: false
+  otlpEndpoint: ""  # e.g., http://jaeger-collector:4318
+  serviceName: ""   # Defaults to chart name if empty
 
 # Additional environment variables
 extraEnv: []

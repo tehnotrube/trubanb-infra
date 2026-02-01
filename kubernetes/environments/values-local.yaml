@@ -3,12 +3,38 @@
 
 kong:
   enabled: true
+
+  # Single replica for local
+  replicaCount: 1
+
   proxy:
     type: NodePort
     http:
       nodePort: 30080
     tls:
       nodePort: 30443
+
+  # Disable Kong Manager (Enterprise-only feature, not useful in OSS)
+  manager:
+    enabled: false
+
+  # Resource limits for local environment
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+  ingressController:
+    resources:
+      limits:
+        cpu: 200m
+        memory: 256Mi
+      requests:
+        cpu: 50m
+        memory: 64Mi
 
   # JWT Authentication Configuration (shared across all services)
   jwt:
@@ -77,6 +103,40 @@ mongodb:
     size: 500Mi
   resources:
     limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+
+minio:
+  enabled: true
+  mode: standalone
+  rootUser: "admin"
+  rootPassword: "dev-minio-password"
+  replicas: 1
+  persistence:
+    enabled: false  # No persistence for local dev
+    size: 2Gi
+  buckets:
+    - name: accommodations
+      policy: public
+      purge: false
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+rabbitmq:
+  enabled: true
+  auth:
+    enabled: true
+    username: "trubanb"
+    password: "dev-rabbitmq-password"
+  persistence:
+    enabled: false  # No persistence for local dev
+  resources:
+    limits:
       cpu: 200m
       memory: 256Mi
     requests:
@@ -93,6 +153,17 @@ user-service:
     pullPolicy: Never  # CRITICAL: Use local images, don't pull from registry
   service:
     port: 3000
+
+  # Database configuration
+  database:
+    host: "trubanb-postgresql-user"
+    port: "5432"
+    name: "userdb"
+    username: "userservice"
+    existingSecret: "trubanb-postgresql-user"
+    secretKeys:
+      passwordKey: "password"
+
   livenessProbe:
     httpGet:
       path: /api/users/health
@@ -126,6 +197,12 @@ user-service:
           - path: /api/users
             pathType: Prefix
 
+  # OpenTelemetry / Observability
+  observability:
+    enabled: true
+    otlpEndpoint: "http://trubanb-jaeger-collector:4318"
+    serviceName: "user-service"
+
   # Environment variables for the service
   extraEnv:
     - name: NODE_ENV
@@ -143,6 +220,37 @@ accommodation-service:
     pullPolicy: Never  # CRITICAL: Use local images, don't pull from registry
   service:
     port: 3000
+
+  # Database configuration
+  database:
+    host: "trubanb-postgresql-accommodation"
+    port: "5432"
+    name: "accommodationdb"
+    username: "accommodationservice"
+    existingSecret: "trubanb-postgresql-accommodation"
+    secretKeys:
+      passwordKey: "password"
+
+  # MinIO configuration
+  minio:
+    host: "trubanb-minio"
+    port: "9000"
+    useSSL: "false"
+    bucket: "accommodations"
+    existingSecret: "trubanb-minio"
+    secretKeys:
+      rootUserKey: "rootUser"
+      rootPasswordKey: "rootPassword"
+
+  # RabbitMQ configuration
+  rabbitmq:
+    host: "trubanb-rabbitmq"
+    port: "5672"
+    username: "trubanb"
+    existingSecret: "trubanb-rabbitmq"
+    secretKeys:
+      passwordKey: "password"
+
   livenessProbe:
     httpGet:
       path: /api/accommodations/health
@@ -171,6 +279,19 @@ accommodation-service:
           - path: /api/accommodations
             pathType: Prefix
 
+  # OpenTelemetry / Observability
+  observability:
+    enabled: true
+    otlpEndpoint: "http://trubanb-jaeger-collector:4318"
+    serviceName: "accommodation-service"
+
+  extraEnv:
+    - name: NODE_ENV
+      value: "development"
+    # TODO: Services should be adapted to use rabbitmq HOST, PASS, PORT instead.
+    - name: RABBITMQ_URL
+      value: "amqp://trubanb:dev-rabbitmq-password@trubanb-rabbitmq:5672"
+
 # Reservation Service - Local Image Configuration
 reservation-service:
   enabled: true
@@ -181,6 +302,26 @@ reservation-service:
     pullPolicy: Never  # CRITICAL: Use local images, don't pull from registry
   service:
     port: 3000
+
+  # Database configuration
+  database:
+    host: "trubanb-postgresql-reservation"
+    port: "5432"
+    name: "reservationdb"
+    username: "reservationservice"
+    existingSecret: "trubanb-postgresql-reservation"
+    secretKeys:
+      passwordKey: "password"
+
+  # RabbitMQ configuration
+  rabbitmq:
+    host: "trubanb-rabbitmq"
+    port: "5672"
+    username: "trubanb"
+    existingSecret: "trubanb-rabbitmq"
+    secretKeys:
+      passwordKey: "password"
+
   livenessProbe:
     httpGet:
       path: /api/reservations/health
@@ -208,6 +349,19 @@ reservation-service:
           - path: /api/reservations
             pathType: Prefix
 
+  # OpenTelemetry / Observability
+  observability:
+    enabled: true
+    otlpEndpoint: "http://trubanb-jaeger-collector:4318"
+    serviceName: "reservation-service"
+
+  extraEnv:
+    - name: NODE_ENV
+      value: "development"
+    # TODO: Services should be adapted to use rabbitmq HOST, PASS, PORT instead.
+    - name: RABBITMQ_URL
+      value: "amqp://trubanb:dev-rabbitmq-password@trubanb-rabbitmq:5672"
+
 # Rating Service - Local Image Configuration
 rating-service:
   enabled: true
@@ -218,6 +372,18 @@ rating-service:
     pullPolicy: Never  # CRITICAL: Use local images, don't pull from registry
   service:
     port: 3000
+
+  # MongoDB configuration
+  mongodb:
+    host: "trubanb-mongodb"
+    port: "27017"
+    database: "ratingsdb"
+    username: "ratingservice"
+    existingSecret: "trubanb-mongodb"
+    secretKeys:
+      passwordKey: "mongodb-passwords"
+      rootPasswordKey: "mongodb-root-password"
+
   livenessProbe:
     httpGet:
       path: /api/ratings/health
@@ -244,6 +410,16 @@ rating-service:
         paths:
           - path: /api/ratings
             pathType: Prefix
+
+  # OpenTelemetry / Observability
+  observability:
+    enabled: true
+    otlpEndpoint: "http://trubanb-jaeger-collector:4318"
+    serviceName: "rating-service"
+
+  extraEnv:
+    - name: NODE_ENV
+      value: "development"
 
 # Notification Service - Local Image Configuration
 notification-service:
@@ -281,3 +457,174 @@ notification-service:
         paths:
           - path: /api/notifications
             pathType: Prefix
+
+  # OpenTelemetry / Observability
+  observability:
+    enabled: true
+    otlpEndpoint: "http://trubanb-jaeger-collector:4318"
+    serviceName: "notification-service"
+
+  extraEnv:
+    - name: NODE_ENV
+      value: "development"
+
+# ============================================================================
+# OBSERVABILITY STACK - Local Development
+# ============================================================================
+
+# Prometheus Stack (Prometheus, Grafana, Alertmanager)
+kube-prometheus-stack:
+  enabled: true
+
+  grafana:
+    enabled: true
+    adminPassword: "admin123"
+    service:
+      type: NodePort
+      nodePort: 30300
+    persistence:
+      enabled: false  # No persistence for local dev
+    resources:
+      limits:
+        cpu: 200m
+        memory: 256Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+
+    # Datasources for Loki and Jaeger
+    additionalDataSources:
+      - name: Loki
+        type: loki
+        url: http://trubanb-loki:3100
+        access: proxy
+        isDefault: false
+      - name: Jaeger
+        type: jaeger
+        url: http://trubanb-jaeger-query:16686
+        access: proxy
+        isDefault: false
+
+  prometheus:
+    prometheusSpec:
+      retention: 1d  # Short retention for local
+      storageSpec: {}  # No persistence for local
+      resources:
+        limits:
+          cpu: 500m
+          memory: 512Mi
+        requests:
+          cpu: 200m
+          memory: 256Mi
+
+  alertmanager:
+    enabled: false  # Disable alertmanager for local dev
+
+  nodeExporter:
+    enabled: false
+
+  kubeStateMetrics:
+    enabled: true
+
+# Loki - Log Aggregation
+loki:
+  enabled: true
+
+  deploymentMode: SingleBinary
+
+  loki:
+    auth_enabled: false
+    commonConfig:
+      replication_factor: 1
+      path_prefix: /var/loki
+    storage:
+      type: filesystem
+    rulerConfig:
+      storage:
+        type: local
+        local:
+          directory: /var/loki/rules
+
+  singleBinary:
+    replicas: 1
+    persistence:
+      enabled: false  # No persistence for local
+    resources:
+      limits:
+        cpu: 200m
+        memory: 256Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+    # Provide writable directory since persistence is disabled
+    extraVolumes:
+      - name: data
+        emptyDir: {}
+    extraVolumeMounts:
+      - name: data
+        mountPath: /var/loki
+
+  read:
+    replicas: 0
+  write:
+    replicas: 0
+  backend:
+    replicas: 0
+  gateway:
+    enabled: false
+
+  # Disable memory-hungry caches for local dev
+  chunksCache:
+    enabled: false
+  resultsCache:
+    enabled: false
+
+# Promtail - Log Collector
+promtail:
+  enabled: true
+
+  config:
+    clients:
+      - url: http://trubanb-loki:3100/loki/api/v1/push
+
+  resources:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+
+# Jaeger - Distributed Tracing
+jaeger:
+  enabled: true
+
+  provisionDataStore:
+    cassandra: false
+    elasticsearch: false
+    kafka: false
+
+  allInOne:
+    enabled: true
+    service:
+      type: NodePort
+      nodePort: 30686
+    resources:
+      limits:
+        cpu: 200m
+        memory: 256Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+
+  storage:
+    type: memory
+
+  collector:
+    enabled: false
+
+  query:
+    enabled: false
+
+  agent:
+    enabled: false

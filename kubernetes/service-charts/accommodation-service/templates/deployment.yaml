@@ -40,6 +40,46 @@ spec:
             secretKeyRef:
               name: {{ include "accommodation-service.databaseSecret" . }}
               key: {{ .Values.database.secretKeys.passwordKey }}
+        # MinIO Configuration
+        - name: MINIO_ENDPOINT
+          value: {{ include "accommodation-service.minioHost" . | quote }}
+        - name: MINIO_PORT
+          value: {{ .Values.minio.port | quote }}
+        - name: MINIO_USE_SSL
+          value: {{ .Values.minio.useSSL | quote }}
+        - name: MINIO_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "accommodation-service.minioSecret" . }}
+              key: {{ .Values.minio.secretKeys.rootUserKey }}
+        - name: MINIO_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "accommodation-service.minioSecret" . }}
+              key: {{ .Values.minio.secretKeys.rootPasswordKey }}
+        - name: MINIO_BUCKET
+          value: {{ .Values.minio.bucket | quote }}
+        - name: STORAGE_PUBLIC_URL
+          value: {{ include "accommodation-service.minioPublicUrl" . | quote }}
+        # RabbitMQ Configuration
+        - name: RABBITMQ_HOST
+          value: {{ include "accommodation-service.rabbitmqHost" . | quote }}
+        - name: RABBITMQ_PORT
+          value: {{ .Values.rabbitmq.port | quote }}
+        - name: RABBITMQ_USER
+          value: {{ .Values.rabbitmq.username | default "trubanb" | quote }}
+        - name: RABBITMQ_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "accommodation-service.rabbitmqSecret" . }}
+              key: {{ .Values.rabbitmq.secretKeys.passwordKey }}
+        {{- if .Values.observability.enabled }}
+        # OpenTelemetry Configuration
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: {{ .Values.observability.otlpEndpoint | quote }}
+        - name: OTEL_SERVICE_NAME
+          value: {{ .Values.observability.serviceName | default .Chart.Name | quote }}
+        {{- end }}
         {{- with .Values.extraEnv }}
         {{- toYaml . | nindent 8 }}
         {{- end }}

@@ -27,15 +27,15 @@ spec:
           containerPort: {{ .Values.service.port }}
           protocol: TCP
         env:
-        - name: DATABASE_HOST
+        - name: DB_HOST
           value: {{ include "user-service.databaseHost" . | quote }}
-        - name: DATABASE_PORT
+        - name: DB_PORT
           value: {{ .Values.database.port | quote }}
-        - name: DATABASE_NAME
+        - name: DB_NAME
           value: {{ .Values.database.name | quote }}
-        - name: DATABASE_USER
+        - name: DB_USER
           value: {{ .Values.database.username | default "userservice" | quote }}
-        - name: DATABASE_PASSWORD
+        - name: DB_PASSWORD
           valueFrom:
             secretKeyRef:
               name: {{ include "user-service.databaseSecret" . }}
@@ -45,6 +45,13 @@ spec:
             secretKeyRef:
               name: {{ include "user-service.fullname" . }}-jwt
               key: jwt-secret
+        {{- if .Values.observability.enabled }}
+        # OpenTelemetry Configuration
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: {{ .Values.observability.otlpEndpoint | quote }}
+        - name: OTEL_SERVICE_NAME
+          value: {{ .Values.observability.serviceName | default .Chart.Name | quote }}
+        {{- end }}
         {{- with .Values.extraEnv }}
         {{- toYaml . | nindent 8 }}
         {{- end }}

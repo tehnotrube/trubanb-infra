@@ -23,6 +23,16 @@ database:
   secretKeys:
     passwordKey: "password"
 
+# RabbitMQ configuration
+rabbitmq:
+  host: ""  # Will be templated to {{ .Release.Name }}-rabbitmq
+  port: "5672"
+  username: "trubanb"
+  # Reference to external secret (created by RabbitMQ chart)
+  existingSecret: ""  # Will be templated to {{ .Release.Name }}-rabbitmq
+  secretKeys:
+    passwordKey: "rabbitmq-password"
+
 resources:
   limits:
     cpu: 500m
@@ -64,6 +74,12 @@ ingress:
       paths:
         - path: /api/reservations
           pathType: Prefix
+
+# OpenTelemetry / Observability configuration
+observability:
+  enabled: false
+  otlpEndpoint: ""  # e.g., http://jaeger-collector:4318
+  serviceName: ""   # Defaults to chart name if empty
 
 # Additional environment variables
 extraEnv: []

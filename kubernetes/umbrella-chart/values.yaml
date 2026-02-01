@@ -141,6 +141,64 @@ mongodb:
     enabled: false  # Enable for monitoring
 
 # ============================================================================
+# MINIO - Object Storage
+# ============================================================================
+
+minio:
+  enabled: false  # Enable in environment-specific values
+
+  # Official MinIO chart configuration
+  rootUser: admin
+  rootPassword: ""  # Set via secret or --set flag
+
+  replicas: 1  # Standalone mode
+
+  persistence:
+    enabled: true
+    size: 10Gi
+    storageClass: ""  # Use default storage class
+
+  buckets:
+    - name: accommodations
+      policy: public
+      purge: false
+
+  resources:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+
+# ============================================================================
+# RABBITMQ - Message Broker
+# ============================================================================
+
+rabbitmq:
+  enabled: false  # Enable in environment-specific values
+  
+  auth:
+    enabled: true
+    username: "trubanb"
+    password: "" # Set via secret or --set flag
+    existingSecret: "" # Optional: reference existing secret
+    erlangCookie: ""
+
+  persistence:
+    enabled: true
+    size: 2Gi
+    storageClass: ""  # Use default storage class
+
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+
+  metrics:
+    enabled: false  # Enable for monitoring
+
+# ============================================================================
 # MICROSERVICES
 # ============================================================================
 
@@ -201,6 +259,12 @@ accommodation-service:
     name: "accommodationdb"
     existingSecret: ""  # Defaults to {{ .Release.Name }}-postgresql-accommodation
 
+  # RabbitMQ configuration
+  rabbitmq:
+    host: ""  # Defaults to {{ .Release.Name }}-rabbitmq
+    port: "5672"
+    existingSecret: ""  # Defaults to {{ .Release.Name }}-rabbitmq
+
   service:
     port: 8080
 
@@ -240,6 +304,12 @@ reservation-service:
     port: "5432"
     name: "reservationdb"
     existingSecret: ""  # Defaults to {{ .Release.Name }}-postgresql-reservation
+
+  # RabbitMQ configuration
+  rabbitmq:
+    host: ""  # Defaults to {{ .Release.Name }}-rabbitmq
+    port: "5672"
+    existingSecret: ""  # Defaults to {{ .Release.Name }}-rabbitmq
 
   service:
     port: 8080
@@ -343,3 +413,217 @@ notification-service:
   #   value: "smtp.example.com"
   # - name: SMTP_PORT
   #   value: "587"
+
+# ============================================================================
+# OBSERVABILITY STACK
+# ============================================================================
+
+# Prometheus Stack (Prometheus, Grafana, Alertmanager, node-exporter)
+kube-prometheus-stack:
+  enabled: false  # Enable in environment-specific values
+
+  # Grafana configuration
+  grafana:
+    enabled: true
+    adminPassword: ""  # Set in environment values
+    persistence:
+      enabled: true
+      size: 5Gi
+
+    # Datasources provisioning
+    additionalDataSources:
+      - name: Loki
+        type: loki
+        url: http://{{ .Release.Name }}-loki:3100
+        access: proxy
+        isDefault: false
+      - name: Jaeger
+        type: jaeger
+        url: http://{{ .Release.Name }}-jaeger-query:16686
+        access: proxy
+        isDefault: false
+
+    # Dashboard provisioning
+    dashboardProviders:
+      dashboardproviders.yaml:
+        apiVersion: 1
+        providers:
+          - name: 'default'
+            orgId: 1
+            folder: ''
+            type: file
+            disableDeletion: false
+            editable: true
+            options:
+              path: /var/lib/grafana/dashboards/default
+
+  # Prometheus configuration
+  prometheus:
+    prometheusSpec:
+      retention: 15d
+      storageSpec:
+        volumeClaimTemplate:
+          spec:
+            accessModes: ["ReadWriteOnce"]
+            resources:
+              requests:
+                storage: 10Gi
+
+      # Scrape configs for microservices
+      additionalScrapeConfigs:
+        - job_name: 'trubanb-services'
+          kubernetes_sd_configs:
+            - role: pod
+          relabel_configs:
+            - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+              action: keep
+              regex: true
+            - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+              action: replace
+              target_label: __metrics_path__
+              regex: (.+)
+            - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+              action: replace
+              regex: ([^:]+)(?::\d+)?;(\d+)
+              replacement: $1:$2
+              target_label: __address__
+            - source_labels: [__meta_kubernetes_namespace]
+              action: replace
+              target_label: kubernetes_namespace
+            - source_labels: [__meta_kubernetes_pod_name]
+              action: replace
+              target_label: kubernetes_pod_name
+
+  # Alertmanager configuration
+  alertmanager:
+    enabled: true
+    alertmanagerSpec:
+      storage:
+        volumeClaimTemplate:
+          spec:
+            accessModes: ["ReadWriteOnce"]
+            resources:
+              requests:
+                storage: 2Gi
+
+  # Node exporter for host metrics
+  nodeExporter:
+    enabled: true
+
+  # Kube-state-metrics for Kubernetes object metrics
+  kubeStateMetrics:
+    enabled: true
+
+# Loki - Log Aggregation
+loki:
+  enabled: false  # Enable in environment-specific values
+
+  deploymentMode: SingleBinary
+
+  loki:
+    auth_enabled: false
+
+    commonConfig:
+      replication_factor: 1
+
+    storage:
+      type: filesystem
+
+    schemaConfig:
+      configs:
+        - from: "2024-01-01"
+          store: tsdb
+          object_store: filesystem
+          schema: v13
+          index:
+            prefix: loki_index_
+            period: 24h
+
+  singleBinary:
+    replicas: 1
+    persistence:
+      enabled: true
+      size: 10Gi
+
+  # Disable other deployment modes
+  read:
+    replicas: 0
+  write:
+    replicas: 0
+  backend:
+    replicas: 0
+
+  # Gateway configuration
+  gateway:
+    enabled: false
+
+# Promtail - Log Collector
+promtail:
+  enabled: false  # Enable in environment-specific values
+
+  config:
+    clients:
+      - url: http://{{ .Release.Name }}-loki:3100/loki/api/v1/push
+
+    snippets:
+      pipelineStages:
+        - cri: {}
+        - multiline:
+            firstline: '^\d{4}-\d{2}-\d{2}|\[[\d-]+\s[\d:,]+\]|^{'
+            max_wait_time: 3s
+        - json:
+            expressions:
+              level: level
+              message: message
+              service: service
+        - labels:
+            level:
+            service:
+
+# Jaeger - Distributed Tracing
+jaeger:
+  enabled: false  # Enable in environment-specific values
+
+  provisionDataStore:
+    cassandra: false
+    elasticsearch: false
+    kafka: false
+
+  allInOne:
+    enabled: true
+    image:
+      registry: docker.io
+      repository: jaegertracing/all-in-one
+      tag: latest
+      pullPolicy: IfNotPresent
+
+    resources:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 250m
+        memory: 256Mi
+
+  storage:
+    type: memory  # Use 'elasticsearch' or 'cassandra' for production
+
+  collector:
+    enabled: false  # Using all-in-one
+
+  query:
+    enabled: false  # Using all-in-one
+
+  agent:
+    enabled: false  # Using all-in-one
+
+# ============================================================================
+# OBSERVABILITY - OTEL Configuration (shared across services)
+# ============================================================================
+observability:
+  # OpenTelemetry configuration for microservices
+  otel:
+    enabled: false  # Enable in environment-specific values
+    # Jaeger OTLP endpoint (services will use this)
+    otlpEndpoint: ""  # Set to http://{{ .Release.Name }}-jaeger-collector:4318 in env values
+    serviceName: ""   # Set per service
