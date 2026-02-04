@@ -109,7 +109,7 @@ services:
 
   # Accommodation Service
   - name: accommodation-service
-    url: http://trubanb-accomodation-service:3000
+    url: http://trubanb-accommodation-service:3000
     routes:
       - name: accommodation-service-route
         paths:
