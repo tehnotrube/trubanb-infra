@@ -259,7 +259,7 @@ services:
     # ============================================================================
 
     # MongoDB for rating-service
-    mongodb:
+    mongodb-rating:
         image: mongo:7-jammy
         restart: always
         environment:
@@ -269,8 +269,29 @@ services:
         ports:
             - "27017:27017"
         volumes:
-            - mongodb-data:/data/db
-            - ./mongo/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+            - mongodb-rating-data:/data/db
+            - ./mongo/mongo-init-rating.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+        healthcheck:
+            test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+        networks:
+            - trubanb-network
+
+    # MongoDB for notification-service
+    mongodb-notification:
+        image: mongo:7-jammy
+        restart: always
+        environment:
+            MONGO_INITDB_ROOT_USERNAME: root
+            MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_ROOT_PASSWORD:-rootpass123}
+            MONGO_INITDB_DATABASE: notificationsdb
+        ports:
+            - "27018:27017"
+        volumes:
+            - mongodb-notification-data:/data/db
+            - ./mongo/mongo-init-notification.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
         healthcheck:
             test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
             interval: 10s
@@ -287,20 +308,23 @@ services:
         ports:
             - "${RATING_SERVICE_PORT}:3000"
         depends_on:
-            mongodb:
+            mongodb-rating:
                 condition: service_healthy
             jaeger:
+                condition: service_healthy
+            rabbitmq:
                 condition: service_healthy
             trubanb-reservation-service:
                 condition: service_started
         environment:
-            MONGODB_URI: mongodb://ratingservice:${MONGODB_RATING_PASSWORD:-ratingpass123}@mongodb:27017/ratingsdb?authSource=ratingsdb
+            MONGODB_URI: mongodb://ratingservice:${MONGODB_RATING_PASSWORD:-ratingpass123}@mongodb-rating:27017/ratingsdb?authSource=ratingsdb
             OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
             OTEL_SERVICE_NAME: rating-service
             NODE_ENV: ${NODE_ENV:-development}
             RESERVATION_GRPC_URL: trubanb-reservation-service:50052
             PORT: 3000
             CORS_ORIGIN: ${CORS_ORIGIN:-*}
+            RABBITMQ_URL: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASSWORD:-guest}@rabbitmq:5672
         networks:
             - trubanb-network
 
@@ -316,13 +340,20 @@ services:
         ports:
             - "${NOTIFICATION_SERVICE_PORT}:3000"
         depends_on:
+            mongodb-notification:
+                condition: service_healthy
             jaeger:
                 condition: service_healthy
+            rabbitmq:
+                condition: service_healthy
         environment:
+            MONGODB_URI: mongodb://notificationservice:${MONGODB_NOTIFICATION_PASSWORD:-notificationpass123}@mongodb-notification:27017/notificationsdb?authSource=notificationsdb
             OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
             OTEL_SERVICE_NAME: notification-service
             NODE_ENV: ${NODE_ENV:-development}
             PORT: 3000
+            CORS_ORIGIN: ${CORS_ORIGIN:-*}
+            RABBITMQ_URL: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASSWORD:-guest}@rabbitmq:5672
         networks:
             - trubanb-network
 
@@ -484,7 +515,8 @@ volumes:
     postgres-user-data:
     postgres-accommodation-data:
     postgres-reservation-data:
-    mongodb-data:
+    mongodb-rating-data:
+    mongodb-notification-data:
     minio-data:
     loki-data:
     grafana-data:
