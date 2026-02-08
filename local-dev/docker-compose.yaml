@@ -75,6 +75,8 @@ services:
                 condition: service_healthy
             jaeger:
                 condition: service_healthy
+            rabbitmq:
+                condition: service_healthy
         environment:
             DB_HOST: postgresql-user
             DB_PORT: 5432
@@ -87,6 +89,8 @@ services:
             NODE_ENV: ${NODE_ENV:-development}
             PORT: 3000
             CORS_ORIGIN: ${CORS_ORIGIN:-*}
+            RESERVATION_GRPC_URL: trubanb-reservation-service:50052
+            RABBITMQ_URL: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASSWORD:-guest}@rabbitmq:5672
         networks:
             - trubanb-network
 
