@@ -37,7 +37,15 @@ dependencies:
   - name: mongodb
     version: "18.1.20"
     repository: https://charts.bitnami.com/bitnami
-    condition: mongodb.enabled
+    condition: mongodb-rating.enabled
+    alias: mongodb-rating
+
+  # MongoDB for notification-service
+  - name: mongodb
+    version: "18.1.20"
+    repository: https://charts.bitnami.com/bitnami
+    condition: mongodb-notification.enabled
+    alias: mongodb-notification
 
   # MinIO for accommodation-service (photo storage)
   - name: minio

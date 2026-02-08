@@ -29,6 +29,51 @@ spec:
         env:
         - name: PORT
           value: {{ .Values.service.port | quote }}
+        # MongoDB Configuration
+        {{- if .Values.mongodb }}
+        - name: MONGODB_HOST
+          value: {{ .Values.mongodb.host | default (printf "%s-mongodb" .Release.Name) | quote }}
+        - name: MONGODB_PORT
+          value: {{ .Values.mongodb.port | default "27017" | quote }}
+        - name: MONGODB_DATABASE
+          value: {{ .Values.mongodb.database | quote }}
+        - name: MONGODB_USERNAME
+          value: {{ .Values.mongodb.username | default "notificationservice" | quote }}
+        - name: MONGODB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.mongodb.existingSecret | default (printf "%s-mongodb" .Release.Name) }}
+              key: {{ .Values.mongodb.secretKeys.passwordKey | default "mongodb-passwords" }}
+        - name: MONGODB_AUTH_DATABASE
+          value: {{ .Values.mongodb.authDatabase | default .Values.mongodb.database | quote }}
+        - name: MONGODB_URI
+          value: "mongodb://$(MONGODB_USERNAME):$(MONGODB_PASSWORD)@$(MONGODB_HOST):$(MONGODB_PORT)/$(MONGODB_DATABASE)?authSource=$(MONGODB_AUTH_DATABASE)"
+        {{- else }}
+        - name: MONGODB_URI
+          value: "mongodb://{{ .Release.Name }}-mongodb:27017/notificationsdb"
+        {{- end }}
+        # RabbitMQ Configuration
+        {{- if .Values.rabbitmq }}
+        - name: RABBITMQ_HOST
+          value: {{ .Values.rabbitmq.host | default (printf "%s-rabbitmq" .Release.Name) | quote }}
+        - name: RABBITMQ_PORT
+          value: {{ .Values.rabbitmq.port | default "5672" | quote }}
+        - name: RABBITMQ_USERNAME
+          value: {{ .Values.rabbitmq.username | default "guest" | quote }}
+        - name: RABBITMQ_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.rabbitmq.existingSecret | default (printf "%s-rabbitmq" .Release.Name) }}
+              key: {{ .Values.rabbitmq.secretKeys.passwordKey | default "rabbitmq-password" }}
+        - name: RABBITMQ_URL
+          value: "amqp://$(RABBITMQ_USERNAME):$(RABBITMQ_PASSWORD)@$(RABBITMQ_HOST):$(RABBITMQ_PORT)"
+        {{- else }}
+        - name: RABBITMQ_URL
+          value: "amqp://{{ .Release.Name }}-rabbitmq:5672"
+        {{- end }}
+        # User Service Configuration
+        - name: USER_SERVICE_URL
+          value: "http://{{ .Release.Name }}-user-service:8080"
         {{- if .Values.observability.enabled }}
         # OpenTelemetry Configuration
         - name: OTEL_EXPORTER_OTLP_ENDPOINT

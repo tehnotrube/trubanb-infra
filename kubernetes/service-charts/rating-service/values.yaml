@@ -24,6 +24,11 @@ mongodb:
     passwordKey: "mongodb-passwords"
   authDatabase: "admin"
 
+# RabbitMQ configuration for notifications
+rabbitmq:
+  # Host will be templated as {{ .Release.Name }}-rabbitmq in deployment
+  existingSecret: ""  # Uses release-name-rabbitmq secret
+
 resources:
   limits:
     cpu: 500m
