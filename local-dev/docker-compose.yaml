@@ -70,6 +70,7 @@ services:
             dockerfile: Dockerfile
         ports:
             - "${USER_SERVICE_PORT}:3000"
+            - "${USER_GRPC_PORT:-50051}:50051"
         depends_on:
             postgresql-user:
                 condition: service_healthy
@@ -86,6 +87,7 @@ services:
             JWT_SECRET: ${JWT_SECRET:-dev-jwt-secret-change-in-production}
             NODE_ENV: ${NODE_ENV:-development}
             PORT: 3000
+            GRPC_PORT: 50051
             CORS_ORIGIN: ${CORS_ORIGIN:-*}
         networks:
             - trubanb-network
@@ -346,6 +348,8 @@ services:
                 condition: service_healthy
             rabbitmq:
                 condition: service_healthy
+            trubanb-user-service:
+                condition: service_started
         environment:
             MONGODB_URI: mongodb://notificationservice:${MONGODB_NOTIFICATION_PASSWORD:-notificationpass123}@mongodb-notification:27017/notificationsdb?authSource=notificationsdb
             OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
@@ -354,6 +358,7 @@ services:
             PORT: 3000
             CORS_ORIGIN: ${CORS_ORIGIN:-*}
             RABBITMQ_URL: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASSWORD:-guest}@rabbitmq:5672
+            USER_GRPC_URL: trubanb-user-service:50051
         networks:
             - trubanb-network
 

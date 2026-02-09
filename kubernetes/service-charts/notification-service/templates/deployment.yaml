@@ -71,9 +71,9 @@ spec:
         - name: RABBITMQ_URL
           value: "amqp://{{ .Release.Name }}-rabbitmq:5672"
         {{- end }}
-        # User Service Configuration
-        - name: USER_SERVICE_URL
-          value: "http://{{ .Release.Name }}-user-service:8080"
+        # User Service gRPC Configuration
+        - name: USER_GRPC_URL
+          value: {{ .Values.userService.grpcUrl | default (printf "%s-user-service:50051" .Release.Name) | quote }}
         {{- if .Values.observability.enabled }}
         # OpenTelemetry Configuration
         - name: OTEL_EXPORTER_OTLP_ENDPOINT

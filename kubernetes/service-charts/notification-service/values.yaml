@@ -71,8 +71,9 @@ rabbitmq:
   # Host will be templated as {{ .Release.Name }}-rabbitmq in deployment
   existingSecret: ""  # Uses release-name-rabbitmq secret
 
-# User service client configuration (for fetching notification preferences)
-# URL is templated in deployment.yaml as http://{{ .Release.Name }}-user-service:8080
+# User service gRPC client configuration (for fetching notification preferences)
+userService:
+  grpcUrl: ""  # Defaults to {{ .Release.Name }}-user-service:50051
 
 # Additional environment variables
 extraEnv: []

@@ -26,6 +26,11 @@ spec:
         - name: http
           containerPort: {{ .Values.service.port }}
           protocol: TCP
+        {{- if .Values.service.grpcPort }}
+        - name: grpc
+          containerPort: {{ .Values.service.grpcPort }}
+          protocol: TCP
+        {{- end }}
         env:
         - name: DB_HOST
           value: {{ include "reservation-service.databaseHost" . | quote }}

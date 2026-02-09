@@ -11,6 +11,7 @@ imagePullSecrets: []
 service:
   type: ClusterIP
   port: 3001
+  grpcPort: 50051
 
 # Database configuration
 database:

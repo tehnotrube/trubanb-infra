@@ -26,7 +26,12 @@ spec:
         - name: http
           containerPort: {{ .Values.service.port }}
           protocol: TCP
+        - name: grpc
+          containerPort: {{ .Values.service.grpcPort | default 50051 }}
+          protocol: TCP
         env:
+        - name: GRPC_PORT
+          value: {{ .Values.service.grpcPort | default 50051 | quote }}
         - name: DB_HOST
           value: {{ include "user-service.databaseHost" . | quote }}
         - name: DB_PORT

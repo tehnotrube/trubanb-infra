@@ -154,11 +154,11 @@ rabbitmq:
     enabled: false  # No persistence for local dev
   resources:
     limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
       cpu: 200m
       memory: 256Mi
-    requests:
-      cpu: 100m
-      memory: 128Mi
 
 # User Service - Local Image Configuration
 user-service:
@@ -170,6 +170,7 @@ user-service:
     pullPolicy: Never  # CRITICAL: Use local images, don't pull from registry
   service:
     port: 3000
+    grpcPort: 50051
 
   # Database configuration
   database:
@@ -317,6 +318,7 @@ reservation-service:
     pullPolicy: Never  # CRITICAL: Use local images, don't pull from registry
   service:
     port: 3000
+    grpcPort: 50052
 
   # Database configuration
   database:
@@ -444,6 +446,8 @@ rating-service:
   extraEnv:
     - name: NODE_ENV
       value: "development"
+    - name: RESERVATION_GRPC_URL
+      value: "trubanb-reservation-service:50052"
 
 # Notification Service - Local Image Configuration
 notification-service:
@@ -455,6 +459,10 @@ notification-service:
     pullPolicy: Never  # CRITICAL: Use local images, don't pull from registry
   service:
     port: 3000
+
+  # User service gRPC client
+  userService:
+    grpcUrl: "trubanb-user-service:50051"
 
   # MongoDB configuration
   mongodb:
