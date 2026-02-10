@@ -96,7 +96,7 @@ mongodb-rating:
   enabled: true
   auth:
     username: "ratingservice"
-    password: "dev-mongo-password"
+    password: "dev-rating-password"
     rootPassword: "dev-mongo-root"
     database: "ratingsdb"
   persistence:
@@ -113,7 +113,7 @@ mongodb-notification:
   enabled: true
   auth:
     username: "notificationservice"
-    password: "dev-mongo-password"
+    password: "dev-notification-password"
     rootPassword: "dev-mongo-root"
     database: "notificationsdb"
   persistence:
@@ -225,8 +225,6 @@ user-service:
   extraEnv:
     - name: NODE_ENV
       value: "development"
-    - name: CORS_ORIGIN
-      value: "*"
 
 # Accommodation Service - Local Image Configuration
 accommodation-service:
