@@ -50,7 +50,7 @@ services:
         environment:
             POSTGRES_DB: userdb
             POSTGRES_USER: userservice
-            POSTGRES_PASSWORD: ${POSTGRES_USER_PASSWORD:-userpass123}
+            POSTGRES_PASSWORD: ${POSTGRES_USER_PASSWORD:-dev-user-password}
         ports:
             - "5432:5432"
         volumes:
@@ -70,6 +70,7 @@ services:
             dockerfile: Dockerfile
         ports:
             - "${USER_SERVICE_PORT}:3000"
+            - "${USER_GRPC_PORT:-50051}:50051"
         depends_on:
             postgresql-user:
                 condition: service_healthy
@@ -80,12 +81,13 @@ services:
             DB_PORT: 5432
             DB_NAME: userdb
             DB_USER: userservice
-            DB_PASSWORD: ${POSTGRES_USER_PASSWORD:-userpass123}
+            DB_PASSWORD: ${POSTGRES_USER_PASSWORD:-dev-user-password}
             OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
             OTEL_SERVICE_NAME: user-service
             JWT_SECRET: ${JWT_SECRET:-dev-jwt-secret-change-in-production}
             NODE_ENV: ${NODE_ENV:-development}
             PORT: 3000
+            GRPC_PORT: 50051
             CORS_ORIGIN: ${CORS_ORIGIN:-*}
         networks:
             - trubanb-network
@@ -101,7 +103,7 @@ services:
         environment:
             POSTGRES_DB: accommodationdb
             POSTGRES_USER: accommodationservice
-            POSTGRES_PASSWORD: ${POSTGRES_ACCOMMODATION_PASSWORD:-accommodationpass123}
+            POSTGRES_PASSWORD: ${POSTGRES_ACCOMMODATION_PASSWORD:-dev-accommodation-password}
         ports:
             - "5433:5432"
         volumes:
@@ -120,8 +122,8 @@ services:
         image: minio/minio:latest
         restart: always
         environment:
-            MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
-            MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin123}
+            MINIO_ROOT_USER: ${MINIO_ROOT_USER:-admin}
+            MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-dev-minio-password}
         ports:
             - "9000:9000"      # API
             - "9001:9001"      # Console UI
@@ -144,8 +146,8 @@ services:
             - "5672:5672"   # AMQP protocol
             - "15672:15672" # Management UI
         environment:
-            RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
-            RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-guest}
+            RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-trubanb}
+            RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-dev-rabbitmq-password}
         volumes:
             - rabbitmq-data:/var/lib/rabbitmq
         healthcheck:
@@ -178,12 +180,12 @@ services:
             DB_PORT: 5432
             DB_NAME: accommodationdb
             DB_USER: accommodationservice
-            DB_PASSWORD: ${POSTGRES_ACCOMMODATION_PASSWORD:-accommodationpass123}
+            DB_PASSWORD: ${POSTGRES_ACCOMMODATION_PASSWORD:-dev-accommodation-password}
             MINIO_ENDPOINT: minio
             MINIO_PORT: 9000
             MINIO_USE_SSL: false
-            MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-minioadmin}
-            MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin123}
+            MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-admin}
+            MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-dev-minio-password}
             MINIO_BUCKET: accommodations
             STORAGE_PUBLIC_URL: http://localhost:9000/accommodations
             GRPC_PORT: 50051
@@ -191,7 +193,7 @@ services:
             OTEL_SERVICE_NAME: accommodation-service
             NODE_ENV: ${NODE_ENV:-development}
             PORT: 3000
-            RABBITMQ_URL: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASSWORD:-guest}@rabbitmq:5672
+            RABBITMQ_URL: amqp://${RABBITMQ_USER:-trubanb}:${RABBITMQ_PASSWORD:-dev-rabbitmq-password}@rabbitmq:5672
             CORS_ORIGIN: ${CORS_ORIGIN:-*}
         networks:
             - trubanb-network
@@ -207,7 +209,7 @@ services:
         environment:
             POSTGRES_DB: reservationdb
             POSTGRES_USER: reservationservice
-            POSTGRES_PASSWORD: ${POSTGRES_RESERVATION_PASSWORD:-reservationpass123}
+            POSTGRES_PASSWORD: ${POSTGRES_RESERVATION_PASSWORD:-dev-reservation-password}
         ports:
             - "5434:5432"
         volumes:
@@ -242,12 +244,12 @@ services:
             DB_PORT: 5432
             DB_NAME: reservationdb
             DB_USER: reservationservice
-            DB_PASSWORD: ${POSTGRES_RESERVATION_PASSWORD:-reservationpass123}
+            DB_PASSWORD: ${POSTGRES_RESERVATION_PASSWORD:-dev-reservation-password}
             ACCOMMODATION_GRPC_URL: trubanb-accommodation-service:50051
             OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
             OTEL_SERVICE_NAME: reservation-service
             NODE_ENV: ${NODE_ENV:-development}
-            RABBITMQ_URL: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASSWORD:-guest}@rabbitmq:5672
+            RABBITMQ_URL: amqp://${RABBITMQ_USER:-trubanb}:${RABBITMQ_PASSWORD:-dev-rabbitmq-password}@rabbitmq:5672
             PORT: 3000
             RESERVATION_GRPC_PORT: 50052
             CORS_ORIGIN: ${CORS_ORIGIN:-*}
@@ -259,18 +261,39 @@ services:
     # ============================================================================
 
     # MongoDB for rating-service
-    mongodb:
+    mongodb-rating:
         image: mongo:7-jammy
         restart: always
         environment:
             MONGO_INITDB_ROOT_USERNAME: root
-            MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_ROOT_PASSWORD:-rootpass123}
+            MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_ROOT_PASSWORD:-dev-mongo-root}
             MONGO_INITDB_DATABASE: ratingsdb
         ports:
             - "27017:27017"
         volumes:
-            - mongodb-data:/data/db
-            - ./mongo/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+            - mongodb-rating-data:/data/db
+            - ./mongo/mongo-init-rating.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+        healthcheck:
+            test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+        networks:
+            - trubanb-network
+
+    # MongoDB for notification-service
+    mongodb-notification:
+        image: mongo:7-jammy
+        restart: always
+        environment:
+            MONGO_INITDB_ROOT_USERNAME: root
+            MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_ROOT_PASSWORD:-dev-mongo-root}
+            MONGO_INITDB_DATABASE: notificationsdb
+        ports:
+            - "27018:27017"
+        volumes:
+            - mongodb-notification-data:/data/db
+            - ./mongo/mongo-init-notification.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
         healthcheck:
             test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
             interval: 10s
@@ -287,20 +310,23 @@ services:
         ports:
             - "${RATING_SERVICE_PORT}:3000"
         depends_on:
-            mongodb:
+            mongodb-rating:
                 condition: service_healthy
             jaeger:
+                condition: service_healthy
+            rabbitmq:
                 condition: service_healthy
             trubanb-reservation-service:
                 condition: service_started
         environment:
-            MONGODB_URI: mongodb://ratingservice:${MONGODB_RATING_PASSWORD:-ratingpass123}@mongodb:27017/ratingsdb?authSource=ratingsdb
+            MONGODB_URI: mongodb://ratingservice:${MONGODB_RATING_PASSWORD:-dev-rating-password}@mongodb-rating:27017/ratingsdb?authSource=ratingsdb
             OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
             OTEL_SERVICE_NAME: rating-service
             NODE_ENV: ${NODE_ENV:-development}
             RESERVATION_GRPC_URL: trubanb-reservation-service:50052
             PORT: 3000
             CORS_ORIGIN: ${CORS_ORIGIN:-*}
+            RABBITMQ_URL: amqp://${RABBITMQ_USER:-trubanb}:${RABBITMQ_PASSWORD:-dev-rabbitmq-password}@rabbitmq:5672
         networks:
             - trubanb-network
 
@@ -316,13 +342,23 @@ services:
         ports:
             - "${NOTIFICATION_SERVICE_PORT}:3000"
         depends_on:
+            mongodb-notification:
+                condition: service_healthy
             jaeger:
                 condition: service_healthy
+            rabbitmq:
+                condition: service_healthy
+            trubanb-user-service:
+                condition: service_started
         environment:
+            MONGODB_URI: mongodb://notificationservice:${MONGODB_NOTIFICATION_PASSWORD:-dev-notification-password}@mongodb-notification:27017/notificationsdb?authSource=notificationsdb
             OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
             OTEL_SERVICE_NAME: notification-service
             NODE_ENV: ${NODE_ENV:-development}
             PORT: 3000
+            CORS_ORIGIN: ${CORS_ORIGIN:-*}
+            RABBITMQ_URL: amqp://${RABBITMQ_USER:-trubanb}:${RABBITMQ_PASSWORD:-dev-rabbitmq-password}@rabbitmq:5672
+            USER_GRPC_URL: trubanb-user-service:50051
         networks:
             - trubanb-network
 
@@ -484,7 +520,8 @@ volumes:
     postgres-user-data:
     postgres-accommodation-data:
     postgres-reservation-data:
-    mongodb-data:
+    mongodb-rating-data:
+    mongodb-notification-data:
     minio-data:
     loki-data:
     grafana-data:

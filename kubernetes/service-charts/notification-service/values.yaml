@@ -60,11 +60,26 @@ observability:
   otlpEndpoint: ""  # e.g., http://jaeger-collector:4318
   serviceName: ""   # Defaults to chart name if empty
 
+# CORS configuration
+cors:
+  origin: "*"  # Override in production with specific origins
+
+# MongoDB configuration for notification history
+mongodb:
+  # Host will be templated as {{ .Release.Name }}-mongodb in deployment
+  database: "notificationsdb"
+  existingSecret: ""  # Uses release-name-mongodb secret
+
+# RabbitMQ configuration
+rabbitmq:
+  # Host will be templated as {{ .Release.Name }}-rabbitmq in deployment
+  existingSecret: ""  # Uses release-name-rabbitmq secret
+
+# User service gRPC client configuration (for fetching notification preferences)
+userService:
+  grpcUrl: ""  # Defaults to {{ .Release.Name }}-user-service:50051
+
 # Additional environment variables
 extraEnv: []
 # - name: LOG_LEVEL
 #   value: "info"
-# - name: SMTP_HOST
-#   value: "smtp.example.com"
-# - name: SMTP_PORT
-#   value: "587"

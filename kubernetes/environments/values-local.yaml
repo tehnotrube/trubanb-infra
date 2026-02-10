@@ -92,13 +92,30 @@ postgresql-reservation:
         cpu: 100m
         memory: 128Mi
 
-mongodb:
+mongodb-rating:
   enabled: true
   auth:
     username: "ratingservice"
-    password: "dev-mongo-password"
+    password: "dev-rating-password"
     rootPassword: "dev-mongo-root"
     database: "ratingsdb"
+  persistence:
+    size: 500Mi
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+
+mongodb-notification:
+  enabled: true
+  auth:
+    username: "notificationservice"
+    password: "dev-notification-password"
+    rootPassword: "dev-mongo-root"
+    database: "notificationsdb"
   persistence:
     size: 500Mi
   resources:
@@ -137,11 +154,11 @@ rabbitmq:
     enabled: false  # No persistence for local dev
   resources:
     limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
       cpu: 200m
       memory: 256Mi
-    requests:
-      cpu: 100m
-      memory: 128Mi
 
 # User Service - Local Image Configuration
 user-service:
@@ -153,6 +170,7 @@ user-service:
     pullPolicy: Never  # CRITICAL: Use local images, don't pull from registry
   service:
     port: 3000
+    grpcPort: 50051
 
   # Database configuration
   database:
@@ -207,8 +225,6 @@ user-service:
   extraEnv:
     - name: NODE_ENV
       value: "development"
-    - name: CORS_ORIGIN
-      value: "*"
 
 # Accommodation Service - Local Image Configuration
 accommodation-service:
@@ -220,6 +236,7 @@ accommodation-service:
     pullPolicy: Never  # CRITICAL: Use local images, don't pull from registry
   service:
     port: 3000
+    grpcPort: 50051
 
   # Database configuration
   database:
@@ -288,9 +305,6 @@ accommodation-service:
   extraEnv:
     - name: NODE_ENV
       value: "development"
-    # TODO: Services should be adapted to use rabbitmq HOST, PASS, PORT instead.
-    - name: RABBITMQ_URL
-      value: "amqp://trubanb:dev-rabbitmq-password@trubanb-rabbitmq:5672"
 
 # Reservation Service - Local Image Configuration
 reservation-service:
@@ -302,6 +316,7 @@ reservation-service:
     pullPolicy: Never  # CRITICAL: Use local images, don't pull from registry
   service:
     port: 3000
+    grpcPort: 50052
 
   # Database configuration
   database:
@@ -358,9 +373,8 @@ reservation-service:
   extraEnv:
     - name: NODE_ENV
       value: "development"
-    # TODO: Services should be adapted to use rabbitmq HOST, PASS, PORT instead.
-    - name: RABBITMQ_URL
-      value: "amqp://trubanb:dev-rabbitmq-password@trubanb-rabbitmq:5672"
+    - name: ACCOMMODATION_GRPC_URL
+      value: "trubanb-accommodation-service:50051"
 
 # Rating Service - Local Image Configuration
 rating-service:
@@ -375,14 +389,24 @@ rating-service:
 
   # MongoDB configuration
   mongodb:
-    host: "trubanb-mongodb"
+    host: "trubanb-mongodb-rating"
     port: "27017"
     database: "ratingsdb"
     username: "ratingservice"
-    existingSecret: "trubanb-mongodb"
+    authDatabase: "ratingsdb"
+    existingSecret: "trubanb-mongodb-rating"
     secretKeys:
       passwordKey: "mongodb-passwords"
       rootPasswordKey: "mongodb-root-password"
+
+  # RabbitMQ configuration
+  rabbitmq:
+    host: "trubanb-rabbitmq"
+    port: "5672"
+    username: "trubanb"
+    existingSecret: "trubanb-rabbitmq"
+    secretKeys:
+      passwordKey: "password"
 
   livenessProbe:
     httpGet:
@@ -420,6 +444,8 @@ rating-service:
   extraEnv:
     - name: NODE_ENV
       value: "development"
+    - name: RESERVATION_GRPC_URL
+      value: "trubanb-reservation-service:50052"
 
 # Notification Service - Local Image Configuration
 notification-service:
@@ -431,6 +457,31 @@ notification-service:
     pullPolicy: Never  # CRITICAL: Use local images, don't pull from registry
   service:
     port: 3000
+
+  # User service gRPC client
+  userService:
+    grpcUrl: "trubanb-user-service:50051"
+
+  # MongoDB configuration
+  mongodb:
+    host: "trubanb-mongodb-notification"
+    port: "27017"
+    database: "notificationsdb"
+    username: "notificationservice"
+    authDatabase: "notificationsdb"
+    existingSecret: "trubanb-mongodb-notification"
+    secretKeys:
+      passwordKey: "mongodb-passwords"
+
+  # RabbitMQ configuration
+  rabbitmq:
+    host: "trubanb-rabbitmq"
+    port: "5672"
+    username: "trubanb"
+    existingSecret: "trubanb-rabbitmq"
+    secretKeys:
+      passwordKey: "password"
+
   livenessProbe:
     httpGet:
       path: /api/notifications/health

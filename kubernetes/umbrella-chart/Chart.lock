@@ -14,6 +14,9 @@ dependencies:
 - name: mongodb
   repository: https://charts.bitnami.com/bitnami
   version: 18.1.20
+- name: mongodb
+  repository: https://charts.bitnami.com/bitnami
+  version: 18.1.20
 - name: minio
   repository: https://charts.min.io/
   version: 5.3.0
@@ -47,5 +50,5 @@ dependencies:
 - name: jaeger
   repository: https://jaegertracing.github.io/helm-charts
   version: 3.4.1
-digest: sha256:d23f6813b6838a28e9620b05179cdb412fb73f8dd30db6d8dc6629fd61a2d69d
-generated: "2026-01-30T20:47:56.4364918+01:00"
+digest: sha256:9be1841964c108c420206f29a2bec649a9d1c1c46ac60195859baa893c6442d1
+generated: "2026-02-06T19:54:17.8311447+01:00"

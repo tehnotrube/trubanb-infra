@@ -9,7 +9,8 @@ metadata:
     {{- with .Values.ingress.annotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
-    # NO JWT plugin - public browsing
+    # NO JWT plugin - public browsing (GET only)
+    konghq.com/methods: GET
 spec:
   ingressClassName: {{ .Values.ingress.className }}
   rules:
@@ -17,16 +18,9 @@ spec:
     - host: {{ .host | quote }}
       http:
         paths:
-        # Public read-only accommodation routes (GET only)
+        # Public read-only routes (GET requests only)
         - path: /api/accommodations
           pathType: Prefix
-          backend:
-            service:
-              name: {{ include "accommodation-service.fullname" $ }}
-              port:
-                number: {{ $.Values.service.port }}
-        - path: /api/accommodations/health
-          pathType: Exact
           backend:
             service:
               name: {{ include "accommodation-service.fullname" $ }}
