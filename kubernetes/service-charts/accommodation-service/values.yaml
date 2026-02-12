@@ -93,6 +93,10 @@ observability:
   otlpEndpoint: ""  # e.g., http://jaeger-collector:4318
   serviceName: ""   # Defaults to chart name if empty
 
+# CORS configuration
+cors:
+  origin: "*"  # Override in production with specific origins
+
 # Additional environment variables
 extraEnv: []
 # - name: LOG_LEVEL

@@ -11,6 +11,7 @@ imagePullSecrets: []
 service:
   type: ClusterIP
   port: 3001
+  grpcPort: 50051
 
 # Database configuration
 database:
@@ -74,6 +75,10 @@ observability:
   enabled: false
   otlpEndpoint: ""  # e.g., http://jaeger-collector:4318
   serviceName: ""   # Defaults to chart name if empty
+
+# CORS configuration
+cors:
+  origin: "*"  # Override in production with specific origins
 
 # Additional environment variables
 extraEnv: []

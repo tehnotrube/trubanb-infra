@@ -24,6 +24,11 @@ mongodb:
     passwordKey: "mongodb-passwords"
   authDatabase: "admin"
 
+# RabbitMQ configuration for notifications
+rabbitmq:
+  # Host will be templated as {{ .Release.Name }}-rabbitmq in deployment
+  existingSecret: ""  # Uses release-name-rabbitmq secret
+
 resources:
   limits:
     cpu: 500m
@@ -71,6 +76,10 @@ observability:
   enabled: false
   otlpEndpoint: ""  # e.g., http://jaeger-collector:4318
   serviceName: ""   # Defaults to chart name if empty
+
+# CORS configuration
+cors:
+  origin: "*"  # Override in production with specific origins
 
 # Additional environment variables
 extraEnv: []

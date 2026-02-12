@@ -26,6 +26,11 @@ spec:
         - name: http
           containerPort: {{ .Values.service.port }}
           protocol: TCP
+        {{- if .Values.service.grpcPort }}
+        - name: grpc
+          containerPort: {{ .Values.service.grpcPort }}
+          protocol: TCP
+        {{- end }}
         env:
         - name: DB_HOST
           value: {{ include "reservation-service.databaseHost" . | quote }}
@@ -52,6 +57,8 @@ spec:
             secretKeyRef:
               name: {{ include "reservation-service.rabbitmqSecret" . }}
               key: {{ .Values.rabbitmq.secretKeys.passwordKey }}
+        - name: RABBITMQ_URL
+          value: "amqp://$(RABBITMQ_USER):$(RABBITMQ_PASSWORD)@$(RABBITMQ_HOST):$(RABBITMQ_PORT)"
         {{- if .Values.observability.enabled }}
         # OpenTelemetry Configuration
         - name: OTEL_EXPORTER_OTLP_ENDPOINT
@@ -59,6 +66,9 @@ spec:
         - name: OTEL_SERVICE_NAME
           value: {{ .Values.observability.serviceName | default .Chart.Name | quote }}
         {{- end }}
+        # CORS Configuration
+        - name: CORS_ORIGIN
+          value: {{ .Values.cors.origin | default "*" | quote }}
         {{- with .Values.extraEnv }}
         {{- toYaml . | nindent 8 }}
         {{- end }}

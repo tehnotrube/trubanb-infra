@@ -43,6 +43,27 @@ spec:
               key: {{ .Values.mongodb.secretKeys.passwordKey }}
         - name: MONGODB_AUTH_DATABASE
           value: {{ .Values.mongodb.authDatabase | quote }}
+        - name: MONGODB_URI
+          value: "mongodb://$(MONGODB_USERNAME):$(MONGODB_PASSWORD)@$(MONGODB_HOST):$(MONGODB_PORT)/$(MONGODB_DATABASE)?authSource=$(MONGODB_AUTH_DATABASE)"
+        # RabbitMQ Configuration for notifications
+        {{- if .Values.rabbitmq }}
+        - name: RABBITMQ_HOST
+          value: {{ .Values.rabbitmq.host | default (printf "%s-rabbitmq" .Release.Name) | quote }}
+        - name: RABBITMQ_PORT
+          value: {{ .Values.rabbitmq.port | default "5672" | quote }}
+        - name: RABBITMQ_USERNAME
+          value: {{ .Values.rabbitmq.username | default "guest" | quote }}
+        - name: RABBITMQ_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.rabbitmq.existingSecret | default (printf "%s-rabbitmq" .Release.Name) }}
+              key: {{ .Values.rabbitmq.secretKeys.passwordKey | default "rabbitmq-password" }}
+        - name: RABBITMQ_URL
+          value: "amqp://$(RABBITMQ_USERNAME):$(RABBITMQ_PASSWORD)@$(RABBITMQ_HOST):$(RABBITMQ_PORT)"
+        {{- else }}
+        - name: RABBITMQ_URL
+          value: "amqp://{{ .Release.Name }}-rabbitmq:5672"
+        {{- end }}
         {{- if .Values.observability.enabled }}
         # OpenTelemetry Configuration
         - name: OTEL_EXPORTER_OTLP_ENDPOINT
@@ -50,6 +71,9 @@ spec:
         - name: OTEL_SERVICE_NAME
           value: {{ .Values.observability.serviceName | default .Chart.Name | quote }}
         {{- end }}
+        # CORS Configuration
+        - name: CORS_ORIGIN
+          value: {{ .Values.cors.origin | default "*" | quote }}
         {{- with .Values.extraEnv }}
         {{- toYaml . | nindent 8 }}
         {{- end }}

@@ -1,27 +1,26 @@
 {{- if .Values.kong.jwt.enabled -}}
 apiVersion: configuration.konghq.com/v1
-kind: KongClusterPlugin
+kind: KongPlugin
 metadata:
   name: {{ .Release.Name }}-jwt-claims-to-headers
   labels:
     app.kubernetes.io/name: {{ .Chart.Name }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
-  annotations:
-    kubernetes.io/ingress.class: kong
 plugin: post-function
 config:
   access:
     - |
       local function base64_url_decode(str)
+        -- Convert URL-safe base64 to standard base64
+        str = str:gsub('-', '+'):gsub('_', '/')
+        -- Add padding if needed
         local remainder = #str % 4
         if remainder > 0 then
           str = str .. string.rep('=', 4 - remainder)
         end
-        str = str:gsub('-', '+'):gsub('_', '/')
-        return (str:gsub('.', function(c)
-          return string.char(tonumber(c:byte() * 16777216 / 16777216))
-        end))
+        -- Use ngx base64 decode on the standard base64 string
+        return ngx.decode_base64(str)
       end
 
       local auth_header = kong.request.get_header("Authorization")
@@ -33,8 +32,8 @@ config:
         end
 
         if #parts == 3 then
-          -- Decode payload (second part)
-          local decoded = ngx.decode_base64(parts[2])
+          -- Decode payload (second part) using URL-safe base64
+          local decoded = base64_url_decode(parts[2])
           if decoded then
             -- Extract claims using pattern matching (avoid JSON library)
             local sub = decoded:match('"sub"%s*:%s*"([^"]+)"')
