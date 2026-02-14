@@ -27,10 +27,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(dirname "$(dirname "$SCRIPT_DIR")")"
 
 # Service definitions
-declare -a SERVICE_NAMES=("User Service" "Accommodation Service" "Reservation Service" "Rating Service" "Notification Service")
-declare -a SERVICE_PATHS=("$ROOT_DIR/trubanb-user-service" "$ROOT_DIR/trubanb-accommodation-service" "$ROOT_DIR/trubanb-reservation-service" "$ROOT_DIR/trubanb-rating-service" "$ROOT_DIR/trubanb-notification-service")
-declare -a SERVICE_IMAGES=("trubanb-user-service:local" "trubanb-accommodation-service:local" "trubanb-reservation-service:local" "trubanb-rating-service:local" "trubanb-notification-service:local")
-declare -a SERVICE_SHORT_NAMES=("user-service" "accommodation-service" "reservation-service" "rating-service" "notification-service")
+declare -a SERVICE_NAMES=("User Service" "Accommodation Service" "Reservation Service" "Rating Service" "Notification Service" "Frontend")
+declare -a SERVICE_PATHS=("$ROOT_DIR/trubanb-user-service" "$ROOT_DIR/trubanb-accommodation-service" "$ROOT_DIR/trubanb-reservation-service" "$ROOT_DIR/trubanb-rating-service" "$ROOT_DIR/trubanb-notification-service" "$ROOT_DIR/trubanb-frontend")
+declare -a SERVICE_IMAGES=("trubanb-user-service:local" "trubanb-accommodation-service:local" "trubanb-reservation-service:local" "trubanb-rating-service:local" "trubanb-notification-service:local" "trubanb-frontend:local")
+declare -a SERVICE_SHORT_NAMES=("user-service" "accommodation-service" "reservation-service" "rating-service" "notification-service" "frontend")
 
 SERVICE_NAME="$1"
 declare -a BUILD_INDICES=()

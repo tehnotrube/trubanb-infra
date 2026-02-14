@@ -89,6 +89,12 @@ dependencies:
     repository: "file://../service-charts/notification-service"
     condition: notification-service.enabled
 
+  # Frontend (React + nginx)
+  - name: frontend
+    version: "0.1.0"
+    repository: "file://../service-charts/frontend"
+    condition: frontend.enabled
+
   # ============================================================================
   # OBSERVABILITY STACK
   # ============================================================================

@@ -26,7 +26,8 @@ $allServices = @(
     @{Name="Accommodation Service"; Path="$rootDir\trubanb-accommodation-service"; Image="trubanb-accommodation-service:local"; ShortName="accommodation-service"},
     @{Name="Reservation Service"; Path="$rootDir\trubanb-reservation-service"; Image="trubanb-reservation-service:local"; ShortName="reservation-service"},
     @{Name="Rating Service"; Path="$rootDir\trubanb-rating-service"; Image="trubanb-rating-service:local"; ShortName="rating-service"},
-    @{Name="Notification Service"; Path="$rootDir\trubanb-notification-service"; Image="trubanb-notification-service:local"; ShortName="notification-service"}
+    @{Name="Notification Service"; Path="$rootDir\trubanb-notification-service"; Image="trubanb-notification-service:local"; ShortName="notification-service"},
+    @{Name="Frontend"; Path="$rootDir\trubanb-frontend"; Image="trubanb-frontend:local"; ShortName="frontend"}
 )
 
 # Filter services if specific service name provided

@@ -38,6 +38,9 @@ dependencies:
 - name: notification-service
   repository: file://../service-charts/notification-service
   version: 0.1.0
+- name: frontend
+  repository: file://../service-charts/frontend
+  version: 0.1.0
 - name: kube-prometheus-stack
   repository: https://prometheus-community.github.io/helm-charts
   version: 67.4.0
@@ -50,5 +53,5 @@ dependencies:
 - name: jaeger
   repository: https://jaegertracing.github.io/helm-charts
   version: 3.4.1
-digest: sha256:47d4aefef393ae3cda60de26f6f2df6cf065627a2f602119273e0eca61302f32
-generated: "2026-02-14T12:39:07.7192191+01:00"
+digest: sha256:15ea1e242926e66e56eb4b53f1a8de132572a1e0b6d1c258ee06d5af9a180a67
+generated: "2026-02-14T16:39:45.6208685+01:00"

@@ -516,6 +516,43 @@ notification-service:
     - name: NODE_ENV
       value: "development"
 
+# Frontend - Local Image Configuration
+frontend:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: trubanb-frontend
+    tag: "local"
+    pullPolicy: Never  # CRITICAL: Use local images, don't pull from registry
+  service:
+    port: 80
+
+  livenessProbe:
+    httpGet:
+      path: /
+      port: 80
+  readinessProbe:
+    httpGet:
+      path: /
+      port: 80
+  resources:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+  ingress:
+    enabled: true
+    className: kong
+    annotations:
+      konghq.com/strip-path: "false"
+    hosts:
+      - host: localhost
+        paths:
+          - path: /
+            pathType: Prefix
+
 # ============================================================================
 # OBSERVABILITY STACK - Local Development
 # ============================================================================
