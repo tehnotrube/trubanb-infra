@@ -128,17 +128,14 @@ mongodb-notification:
 
 minio:
   enabled: true
-  mode: standalone
-  rootUser: "admin"
-  rootPassword: "dev-minio-password"
-  replicas: 1
+  auth:
+    rootUser: "admin"
+    rootPassword: "dev-minio-password"
+  replicaCount: 1
+  defaultBuckets: "accommodations:public"
   persistence:
     enabled: false  # No persistence for local dev
     size: 2Gi
-  buckets:
-    - name: accommodations
-      policy: public
-      purge: false
   resources:
     requests:
       cpu: 100m
@@ -256,8 +253,8 @@ accommodation-service:
     bucket: "accommodations"
     existingSecret: "trubanb-minio"
     secretKeys:
-      rootUserKey: "rootUser"
-      rootPasswordKey: "rootPassword"
+      rootUserKey: "root-user"
+      rootPasswordKey: "root-password"
 
   # RabbitMQ configuration
   rabbitmq:

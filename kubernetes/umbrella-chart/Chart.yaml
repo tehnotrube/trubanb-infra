@@ -15,42 +15,42 @@ dependencies:
   # PostgreSQL for user-service
   - name: postgresql
     version: "18.2.0"
-    repository: https://charts.bitnami.com/bitnami
+    repository: oci://registry-1.docker.io/bitnamicharts
     condition: postgresql-user.enabled
     alias: postgresql-user
 
   # PostgreSQL for accommodation-service
   - name: postgresql
     version: "18.2.0"
-    repository: https://charts.bitnami.com/bitnami
+    repository: oci://registry-1.docker.io/bitnamicharts
     condition: postgresql-accommodation.enabled
     alias: postgresql-accommodation
 
   # PostgreSQL for reservation-service
   - name: postgresql
     version: "18.2.0"
-    repository: https://charts.bitnami.com/bitnami
+    repository: oci://registry-1.docker.io/bitnamicharts
     condition: postgresql-reservation.enabled
     alias: postgresql-reservation
 
   # MongoDB for rating-service
   - name: mongodb
     version: "18.1.20"
-    repository: https://charts.bitnami.com/bitnami
+    repository: oci://registry-1.docker.io/bitnamicharts
     condition: mongodb-rating.enabled
     alias: mongodb-rating
 
   # MongoDB for notification-service
   - name: mongodb
     version: "18.1.20"
-    repository: https://charts.bitnami.com/bitnami
+    repository: oci://registry-1.docker.io/bitnamicharts
     condition: mongodb-notification.enabled
     alias: mongodb-notification
 
   # MinIO for accommodation-service (photo storage)
   - name: minio
-    version: "5.3.0"
-    repository: https://charts.min.io/
+    version: "0.9.2"
+    repository: oci://registry-1.docker.io/cloudpirates
     condition: minio.enabled
 
   # RabbitMQ for message broker

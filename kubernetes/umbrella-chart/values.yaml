@@ -147,21 +147,21 @@ mongodb:
 minio:
   enabled: false  # Enable in environment-specific values
 
-  # Official MinIO chart configuration
-  rootUser: admin
-  rootPassword: ""  # Set via secret or --set flag
+  # CloudPirates MinIO chart configuration
+  auth:
+    rootUser: admin
+    rootPassword: ""  # Set via secret or --set flag
+    existingSecret: ""  # Optional: reference existing secret
 
-  replicas: 1  # Standalone mode
+  replicaCount: 1
+
+  # Comma-separated list of buckets to create: "name:policy" (none, download, upload, public)
+  defaultBuckets: "accommodations:public"
 
   persistence:
     enabled: true
     size: 10Gi
     storageClass: ""  # Use default storage class
-
-  buckets:
-    - name: accommodations
-      policy: public
-      purge: false
 
   resources:
     requests:

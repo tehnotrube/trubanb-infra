@@ -32,8 +32,8 @@ minio:
   # Reference to external secret (created by MinIO chart)
   existingSecret: ""  # Will be templated to {{ .Release.Name }}-minio
   secretKeys:
-    rootUserKey: "rootUser"
-    rootPasswordKey: "rootPassword"
+    rootUserKey: "root-user"
+    rootPasswordKey: "root-password"
 
 # RabbitMQ configuration
 rabbitmq:
