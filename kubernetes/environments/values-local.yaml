@@ -128,17 +128,14 @@ mongodb-notification:
 
 minio:
   enabled: true
-  mode: standalone
-  rootUser: "admin"
-  rootPassword: "dev-minio-password"
-  replicas: 1
+  auth:
+    rootUser: "admin"
+    rootPassword: "dev-minio-password"
+  replicaCount: 1
+  defaultBuckets: "accommodations:public"
   persistence:
     enabled: false  # No persistence for local dev
     size: 2Gi
-  buckets:
-    - name: accommodations
-      policy: public
-      purge: false
   resources:
     requests:
       cpu: 100m
@@ -256,8 +253,8 @@ accommodation-service:
     bucket: "accommodations"
     existingSecret: "trubanb-minio"
     secretKeys:
-      rootUserKey: "rootUser"
-      rootPasswordKey: "rootPassword"
+      rootUserKey: "root-user"
+      rootPasswordKey: "root-password"
 
   # RabbitMQ configuration
   rabbitmq:
@@ -519,6 +516,43 @@ notification-service:
     - name: NODE_ENV
       value: "development"
 
+# Frontend - Local Image Configuration
+frontend:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: trubanb-frontend
+    tag: "local"
+    pullPolicy: Never  # CRITICAL: Use local images, don't pull from registry
+  service:
+    port: 80
+
+  livenessProbe:
+    httpGet:
+      path: /
+      port: 80
+  readinessProbe:
+    httpGet:
+      path: /
+      port: 80
+  resources:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+  ingress:
+    enabled: true
+    className: kong
+    annotations:
+      konghq.com/strip-path: "false"
+    hosts:
+      - host: localhost
+        paths:
+          - path: /
+            pathType: Prefix
+
 # ============================================================================
 # OBSERVABILITY STACK - Local Development
 # ============================================================================
@@ -531,8 +565,7 @@ kube-prometheus-stack:
     enabled: true
     adminPassword: "admin123"
     service:
-      type: NodePort
-      nodePort: 30300
+      type: ClusterIP
     persistence:
       enabled: false  # No persistence for local dev
     resources:
@@ -657,9 +690,6 @@ jaeger:
 
   allInOne:
     enabled: true
-    service:
-      type: NodePort
-      nodePort: 30686
     resources:
       limits:
         cpu: 200m

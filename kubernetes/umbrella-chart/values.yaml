@@ -147,21 +147,21 @@ mongodb:
 minio:
   enabled: false  # Enable in environment-specific values
 
-  # Official MinIO chart configuration
-  rootUser: admin
-  rootPassword: ""  # Set via secret or --set flag
+  # CloudPirates MinIO chart configuration
+  auth:
+    rootUser: admin
+    rootPassword: ""  # Set via secret or --set flag
+    existingSecret: ""  # Optional: reference existing secret
 
-  replicas: 1  # Standalone mode
+  replicaCount: 1
+
+  # Comma-separated list of buckets to create: "name:policy" (none, download, upload, public)
+  defaultBuckets: "accommodations:public"
 
   persistence:
     enabled: true
     size: 10Gi
     storageClass: ""  # Use default storage class
-
-  buckets:
-    - name: accommodations
-      policy: public
-      purge: false
 
   resources:
     requests:
@@ -413,6 +413,38 @@ notification-service:
   #   value: "smtp.example.com"
   # - name: SMTP_PORT
   #   value: "587"
+
+# Frontend (React + nginx)
+frontend:
+  enabled: true
+  replicaCount: 2
+
+  image:
+    repository: ghcr.io/tehnotrube/frontend
+    tag: "v1.0.0"
+    pullPolicy: IfNotPresent
+
+  service:
+    port: 80
+
+  ingress:
+    enabled: true
+    className: kong
+    annotations:
+      konghq.com/strip-path: "false"
+    hosts:
+      - host: trubanb.local
+        paths:
+          - path: /
+            pathType: Prefix
+
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
 
 # ============================================================================
 # OBSERVABILITY STACK

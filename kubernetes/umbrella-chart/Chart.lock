@@ -3,23 +3,23 @@ dependencies:
   repository: https://charts.konghq.com
   version: 2.38.0
 - name: postgresql
-  repository: https://charts.bitnami.com/bitnami
+  repository: oci://registry-1.docker.io/bitnamicharts
   version: 18.2.0
 - name: postgresql
-  repository: https://charts.bitnami.com/bitnami
+  repository: oci://registry-1.docker.io/bitnamicharts
   version: 18.2.0
 - name: postgresql
-  repository: https://charts.bitnami.com/bitnami
+  repository: oci://registry-1.docker.io/bitnamicharts
   version: 18.2.0
 - name: mongodb
-  repository: https://charts.bitnami.com/bitnami
+  repository: oci://registry-1.docker.io/bitnamicharts
   version: 18.1.20
 - name: mongodb
-  repository: https://charts.bitnami.com/bitnami
+  repository: oci://registry-1.docker.io/bitnamicharts
   version: 18.1.20
 - name: minio
-  repository: https://charts.min.io/
-  version: 5.3.0
+  repository: oci://registry-1.docker.io/cloudpirates
+  version: 0.9.2
 - name: rabbitmq
   repository: oci://registry-1.docker.io/cloudpirates
   version: 0.15.3
@@ -38,6 +38,9 @@ dependencies:
 - name: notification-service
   repository: file://../service-charts/notification-service
   version: 0.1.0
+- name: frontend
+  repository: file://../service-charts/frontend
+  version: 0.1.0
 - name: kube-prometheus-stack
   repository: https://prometheus-community.github.io/helm-charts
   version: 67.4.0
@@ -50,5 +53,5 @@ dependencies:
 - name: jaeger
   repository: https://jaegertracing.github.io/helm-charts
   version: 3.4.1
-digest: sha256:9be1841964c108c420206f29a2bec649a9d1c1c46ac60195859baa893c6442d1
-generated: "2026-02-06T19:54:17.8311447+01:00"
+digest: sha256:15ea1e242926e66e56eb4b53f1a8de132572a1e0b6d1c258ee06d5af9a180a67
+generated: "2026-02-14T16:39:45.6208685+01:00"
