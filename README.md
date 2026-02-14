@@ -77,7 +77,13 @@ chmod +x build-local.sh
 ./build-local.sh
 ```
 
-This builds all 5 services with the `local` tag.
+This builds all 5 backend services and the frontend with the `local` tag.
+
+To build a single service:
+```powershell
+.\build-local.ps1 frontend        # Build only frontend
+.\build-local.ps1 user-service    # Build only user-service
+```
 
 #### Step 2: Add Helm Repositories
 
@@ -116,18 +122,31 @@ kubectl get pods -n trubanb-dev
 
 ### Accessing the Application
 
-Kong API Gateway is exposed via NodePort on port **30080**.
+Kong API Gateway is the single entry point, exposed via NodePort on port **30080**.
 
-API endpoints are available at:
-- `http://localhost:30080/api/users`
-- `http://localhost:30080/api/accommodations`
-- `http://localhost:30080/api/reservations`
-- `http://localhost:30080/api/ratings`
-- `http://localhost:30080/api/notifications`
+- **Frontend**: `http://localhost:30080/`
+- **API endpoints**:
+  - `http://localhost:30080/api/users`
+  - `http://localhost:30080/api/accommodations`
+  - `http://localhost:30080/api/reservations`
+  - `http://localhost:30080/api/ratings`
+  - `http://localhost:30080/api/notifications`
 
-Observability dashboards:
-- **Grafana**: `http://localhost:30300` (admin / admin123)
-- **Jaeger**: `http://localhost:30686`
+### Observability Dashboards
+
+Grafana and Jaeger are internal (ClusterIP) services. Access them via port-forwarding:
+
+**Grafana:**
+```bash
+kubectl port-forward svc/trubanb-kube-prometheus-stack-grafana 3000:80 -n trubanb-dev
+# Access at http://localhost:3000 (admin / admin123)
+```
+
+**Jaeger:**
+```bash
+kubectl port-forward svc/trubanb-jaeger-query 16686:16686 -n trubanb-dev
+# Access at http://localhost:16686
+```
 
 ### Upgrading
 
