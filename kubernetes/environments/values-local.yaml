@@ -565,8 +565,7 @@ kube-prometheus-stack:
     enabled: true
     adminPassword: "admin123"
     service:
-      type: NodePort
-      nodePort: 30300
+      type: ClusterIP
     persistence:
       enabled: false  # No persistence for local dev
     resources:
@@ -691,9 +690,6 @@ jaeger:
 
   allInOne:
     enabled: true
-    service:
-      type: NodePort
-      nodePort: 30686
     resources:
       limits:
         cpu: 200m
