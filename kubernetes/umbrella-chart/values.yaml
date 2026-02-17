@@ -475,19 +475,15 @@ kube-prometheus-stack:
         access: proxy
         isDefault: false
 
-    # Dashboard provisioning
-    dashboardProviders:
-      dashboardproviders.yaml:
-        apiVersion: 1
-        providers:
-          - name: 'default'
-            orgId: 1
-            folder: ''
-            type: file
-            disableDeletion: false
-            editable: true
-            options:
-              path: /var/lib/grafana/dashboards/default
+    # Dashboard sidecar - auto-discovers ConfigMaps with grafana_dashboard label
+    sidecar:
+      dashboards:
+        enabled: true
+        label: grafana_dashboard
+        folderAnnotation: grafana_folder
+        provider:
+          foldersFromFilesStructure: false
+          allowUiUpdates: true
 
   # Prometheus configuration
   prometheus:
