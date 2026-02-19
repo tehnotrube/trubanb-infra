@@ -70,3 +70,25 @@ Database secret name - use provided value or construct from release name
 {{- printf "%s-postgresql-user" .Release.Name }}
 {{- end }}
 {{- end }}
+
+{{/*
+RabbitMQ host - use provided value or construct from release name
+*/}}
+{{- define "user-service.rabbitmqHost" -}}
+{{- if .Values.rabbitmq.host }}
+{{- .Values.rabbitmq.host }}
+{{- else }}
+{{- printf "%s-rabbitmq" .Release.Name }}
+{{- end }}
+{{- end }}
+
+{{/*
+RabbitMQ secret name - use provided value or construct from release name
+*/}}
+{{- define "user-service.rabbitmqSecret" -}}
+{{- if .Values.rabbitmq.existingSecret }}
+{{- .Values.rabbitmq.existingSecret }}
+{{- else }}
+{{- printf "%s-rabbitmq" .Release.Name }}
+{{- end }}
+{{- end }}

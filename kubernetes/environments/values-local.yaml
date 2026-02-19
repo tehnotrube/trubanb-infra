@@ -179,6 +179,15 @@ user-service:
     secretKeys:
       passwordKey: "password"
 
+  # RabbitMQ configuration
+  rabbitmq:
+    host: "trubanb-rabbitmq"
+    port: "5672"
+    username: "trubanb"
+    existingSecret: "trubanb-rabbitmq"
+    secretKeys:
+      passwordKey: "password"
+
   livenessProbe:
     httpGet:
       path: /api/users/health
