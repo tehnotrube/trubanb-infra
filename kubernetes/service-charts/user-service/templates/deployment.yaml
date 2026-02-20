@@ -54,6 +54,20 @@ spec:
             secretKeyRef:
               name: {{ include "user-service.fullname" . }}-jwt
               key: jwt-secret
+        # RabbitMQ Configuration
+        - name: RABBITMQ_HOST
+          value: {{ include "user-service.rabbitmqHost" . | quote }}
+        - name: RABBITMQ_PORT
+          value: {{ .Values.rabbitmq.port | quote }}
+        - name: RABBITMQ_USER
+          value: {{ .Values.rabbitmq.username | default "trubanb" | quote }}
+        - name: RABBITMQ_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "user-service.rabbitmqSecret" . }}
+              key: {{ .Values.rabbitmq.secretKeys.passwordKey }}
+        - name: RABBITMQ_URL
+          value: "amqp://$(RABBITMQ_USER):$(RABBITMQ_PASSWORD)@$(RABBITMQ_HOST):$(RABBITMQ_PORT)"
         {{- if .Values.observability.enabled }}
         # OpenTelemetry Configuration
         - name: OTEL_EXPORTER_OTLP_ENDPOINT

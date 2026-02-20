@@ -1,10 +1,10 @@
-# Local Development Environment Values
-# Use this file to deploy services with locally built Docker images
+# Development Environment Values
+# Uses container images from GitHub Container Registry (ghcr.io/tehnotrube)
 
 kong:
   enabled: true
 
-  # Single replica for local
+  # Single replica for dev
   replicaCount: 1
 
   proxy:
@@ -18,7 +18,7 @@ kong:
   manager:
     enabled: false
 
-  # Resource limits for local environment
+  # Resource limits for dev environment
   resources:
     limits:
       cpu: 500m
@@ -134,7 +134,7 @@ minio:
   replicaCount: 1
   defaultBuckets: "accommodations:public"
   persistence:
-    enabled: false  # No persistence for local dev
+    enabled: false
     size: 2Gi
   resources:
     requests:
@@ -148,7 +148,7 @@ rabbitmq:
     username: "trubanb"
     password: "dev-rabbitmq-password"
   persistence:
-    enabled: false  # No persistence for local dev
+    enabled: false
   resources:
     limits:
       cpu: 500m
@@ -157,14 +157,14 @@ rabbitmq:
       cpu: 200m
       memory: 256Mi
 
-# User Service - Local Image Configuration
+# User Service - GHCR Image
 user-service:
   enabled: true
   replicaCount: 1
   image:
-    repository: trubanb-user-service
-    tag: "local"
-    pullPolicy: Never  # CRITICAL: Use local images, don't pull from registry
+    repository: ghcr.io/tehnotrube/trubanb-user-service
+    tag: "beta"
+    pullPolicy: Always
   service:
     port: 3000
     grpcPort: 50051
@@ -210,8 +210,8 @@ user-service:
 
   ingress:
     enabled: true
-    jwtEnabled: true  # Enable JWT protection for this service
-    publicEnabled: true  # Enable public routes (login, register, health)
+    jwtEnabled: true
+    publicEnabled: true
     className: kong
     annotations:
       konghq.com/strip-path: "false"
@@ -227,19 +227,18 @@ user-service:
     otlpEndpoint: "http://trubanb-jaeger-collector:4318"
     serviceName: "user-service"
 
-  # Environment variables for the service
   extraEnv:
     - name: NODE_ENV
       value: "development"
 
-# Accommodation Service - Local Image Configuration
+# Accommodation Service - GHCR Image
 accommodation-service:
   enabled: true
   replicaCount: 1
   image:
-    repository: trubanb-accommodation-service
-    tag: "local"
-    pullPolicy: Never  # CRITICAL: Use local images, don't pull from registry
+    repository: ghcr.io/tehnotrube/trubanb-accommodation-service
+    tag: "beta"
+    pullPolicy: Always
   service:
     port: 3000
     grpcPort: 50051
@@ -291,9 +290,9 @@ accommodation-service:
       memory: 128Mi
   ingress:
     enabled: true
-    jwtEnabled: true  # Enable JWT protection for this service
+    jwtEnabled: true
     className: kong
-    publicEnabled: true  # Enable public browsing routes
+    publicEnabled: true
     annotations:
       konghq.com/strip-path: "false"
     hosts:
@@ -312,14 +311,14 @@ accommodation-service:
     - name: NODE_ENV
       value: "development"
 
-# Reservation Service - Local Image Configuration
+# Reservation Service - GHCR Image
 reservation-service:
   enabled: true
   replicaCount: 1
   image:
-    repository: trubanb-reservation-service
-    tag: "local"
-    pullPolicy: Never  # CRITICAL: Use local images, don't pull from registry
+    repository: ghcr.io/tehnotrube/trubanb-reservation-service
+    tag: "beta"
+    pullPolicy: Always
   service:
     port: 3000
     grpcPort: 50052
@@ -360,7 +359,7 @@ reservation-service:
       memory: 128Mi
   ingress:
     enabled: true
-    jwtEnabled: true  # Enable JWT protection for this service
+    jwtEnabled: true
     className: kong
     annotations:
       konghq.com/strip-path: "false"
@@ -382,14 +381,14 @@ reservation-service:
     - name: ACCOMMODATION_GRPC_URL
       value: "trubanb-accommodation-service:50051"
 
-# Rating Service - Local Image Configuration
+# Rating Service - GHCR Image
 rating-service:
   enabled: true
   replicaCount: 1
   image:
-    repository: trubanb-rating-service
-    tag: "local"
-    pullPolicy: Never  # CRITICAL: Use local images, don't pull from registry
+    repository: ghcr.io/tehnotrube/trubanb-rating-service
+    tag: "beta"
+    pullPolicy: Always
   service:
     port: 3000
 
@@ -431,7 +430,7 @@ rating-service:
       memory: 128Mi
   ingress:
     enabled: true
-    jwtEnabled: true  # Enable JWT protection for this service
+    jwtEnabled: true
     className: kong
     annotations:
       konghq.com/strip-path: "false"
@@ -453,14 +452,14 @@ rating-service:
     - name: RESERVATION_GRPC_URL
       value: "trubanb-reservation-service:50052"
 
-# Notification Service - Local Image Configuration
+# Notification Service - GHCR Image
 notification-service:
   enabled: true
   replicaCount: 1
   image:
-    repository: trubanb-notification-service
-    tag: "local"
-    pullPolicy: Never  # CRITICAL: Use local images, don't pull from registry
+    repository: ghcr.io/tehnotrube/trubanb-notification-service
+    tag: "beta"
+    pullPolicy: Always
   service:
     port: 3000
 
@@ -505,7 +504,7 @@ notification-service:
       memory: 128Mi
   ingress:
     enabled: true
-    jwtEnabled: true  # Enable JWT protection for this service
+    jwtEnabled: true
     className: kong
     annotations:
       konghq.com/strip-path: "false"
@@ -525,14 +524,14 @@ notification-service:
     - name: NODE_ENV
       value: "development"
 
-# Frontend - Local Image Configuration
+# Frontend - GHCR Image
 frontend:
   enabled: true
   replicaCount: 1
   image:
-    repository: trubanb-frontend
-    tag: "local"
-    pullPolicy: Never  # CRITICAL: Use local images, don't pull from registry
+    repository: ghcr.io/tehnotrube/trubanb-frontend
+    tag: "beta"
+    pullPolicy: Always
   service:
     port: 80
 
@@ -563,7 +562,7 @@ frontend:
             pathType: Prefix
 
 # ============================================================================
-# OBSERVABILITY STACK - Local Development
+# OBSERVABILITY STACK - Development
 # ============================================================================
 
 # Prometheus Stack (Prometheus, Grafana, Alertmanager)
@@ -576,7 +575,7 @@ kube-prometheus-stack:
     service:
       type: ClusterIP
     persistence:
-      enabled: false  # No persistence for local dev
+      enabled: false
     resources:
       limits:
         cpu: 200m
@@ -600,8 +599,8 @@ kube-prometheus-stack:
 
   prometheus:
     prometheusSpec:
-      retention: 1d  # Short retention for local
-      storageSpec: {}  # No persistence for local
+      retention: 1d
+      storageSpec: {}
       resources:
         limits:
           cpu: 500m
@@ -611,7 +610,7 @@ kube-prometheus-stack:
           memory: 256Mi
 
   alertmanager:
-    enabled: false  # Disable alertmanager for local dev
+    enabled: false
 
   nodeExporter:
     enabled: false
@@ -641,7 +640,7 @@ loki:
   singleBinary:
     replicas: 1
     persistence:
-      enabled: false  # No persistence for local
+      enabled: false
     resources:
       limits:
         cpu: 200m
@@ -649,7 +648,6 @@ loki:
       requests:
         cpu: 100m
         memory: 128Mi
-    # Provide writable directory since persistence is disabled
     extraVolumes:
       - name: data
         emptyDir: {}
@@ -666,7 +664,6 @@ loki:
   gateway:
     enabled: false
 
-  # Disable memory-hungry caches for local dev
   chunksCache:
     enabled: false
   resultsCache:
