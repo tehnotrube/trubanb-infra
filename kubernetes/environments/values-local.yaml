@@ -403,7 +403,6 @@ rating-service:
     existingSecret: "trubanb-mongodb-rating"
     secretKeys:
       passwordKey: "mongodb-passwords"
-      rootPasswordKey: "mongodb-root-password"
 
   # RabbitMQ configuration
   rabbitmq:

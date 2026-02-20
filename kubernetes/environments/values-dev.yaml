@@ -402,7 +402,6 @@ rating-service:
     existingSecret: "trubanb-mongodb-rating"
     secretKeys:
       passwordKey: "mongodb-passwords"
-      rootPasswordKey: "mongodb-root-password"
 
   # RabbitMQ configuration
   rabbitmq:
@@ -613,7 +612,11 @@ kube-prometheus-stack:
     enabled: false
 
   nodeExporter:
-    enabled: false
+    enabled: true
+
+  prometheus-node-exporter:
+    hostRootFsMount:
+      enabled: false
 
   kubeStateMetrics:
     enabled: true
