@@ -268,9 +268,10 @@ data:
                 "uid": "prometheus"
               },
               "editorMode": "code",
-              "expr": "unique_visitors_total",
+              "expr": "max(unique_visitors_total)",
+              "instant": true,
               "legendFormat": "Unique Visitors",
-              "range": true,
+              "range": false,
               "refId": "A"
             }
           ],

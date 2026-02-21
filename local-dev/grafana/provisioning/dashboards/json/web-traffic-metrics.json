@@ -256,7 +256,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "unique_visitors_total",
+          "expr": "max(unique_visitors_total)",
           "legendFormat": "Unique Visitors",
           "range": true,
           "refId": "A"
