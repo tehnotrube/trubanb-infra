@@ -285,7 +285,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "100 - ((node_filesystem_avail_bytes{mountpoint=~\"/mnt/host/c|/mnt/host/d|/var/lib\"} * 100) / node_filesystem_size_bytes{mountpoint=~\"/mnt/host/c|/mnt/host/d|/var/lib\"})",
+          "expr": "(node_filesystem_size_bytes - node_filesystem_free_bytes) / node_filesystem_size_bytes * 100",
           "legendFormat": "{{mountpoint}}",
           "range": true,
           "refId": "A"
@@ -374,8 +374,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "rate(node_network_receive_bytes_total{device!=\"lo\"}[5m])",
-          "legendFormat": "{{device}} - Receive",
+          "expr": "rate(node_network_receive_bytes_total{device=\"eth0\"}[5m])",
+          "legendFormat": "eth0 - Receive",
           "range": true,
           "refId": "A"
         },
@@ -385,8 +385,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "rate(node_network_transmit_bytes_total{device!=\"lo\"}[5m])",
-          "legendFormat": "{{device}} - Transmit",
+          "expr": "rate(node_network_transmit_bytes_total{device=\"eth0\"}[5m])",
+          "legendFormat": "eth0 - Transmit",
           "range": true,
           "refId": "B"
         }
@@ -652,13 +652,24 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "container_fs_usage_bytes{name=~\".*trubanb.*\"}",
-          "legendFormat": "{{name}}",
+          "expr": "sum(rate(container_fs_reads_bytes_total{name=~\".*trubanb.*\"}[5m])) by (name)",
+          "legendFormat": "{{name}} - Read",
           "range": true,
           "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum(rate(container_fs_writes_bytes_total{name=~\".*trubanb.*\"}[5m])) by (name)",
+          "legendFormat": "{{name}} - Write",
+          "range": true,
+          "refId": "B"
         }
       ],
-      "title": "Container Filesystem Usage",
+      "title": "Container Disk I/O",
       "type": "timeseries"
     },
     {
